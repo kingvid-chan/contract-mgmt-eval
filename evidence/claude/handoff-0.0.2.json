@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "iteration": "0.0.2",
+    "project": "contract-mgmt-eval",
+    "feature": "操作审计日志",
+    "session_id": "session-20260618-0.0.2",
+    "created": "2026-06-18T18:00:00+00:00",
+    "author": "Claude CodingAgent (technical-expert)"
+  },
+
+  "technical_plan": "evidence/claude/technical-plan-0.0.2.json",
+  "tasks": "evidence/claude/tasks-defined-0.0.2.json",
+
+  "architecture_decisions": [
+    {
+      "id": "ADR-002",
+      "title": "审计日志记录方式 — FastAPI 依赖注入",
+      "doc": "docs/decisions/ADR-002-审计日志记录方式.md",
+      "choice": "方案 B: AuditLogger Depends 在路由层注入"
+    },
+    {
+      "id": "ADR-003",
+      "title": "客户端 IP 获取策略 — 三层兼容链",
+      "doc": "docs/decisions/ADR-003-客户端IP获取策略.md",
+      "choice": "方案 C: X-Real-IP → X-Forwarded-For → client.host"
+    },
+    {
+      "id": "ADR-004",
+      "title": "数据库迁移策略 — 手动幂等 ALTER TABLE",
+      "doc": "docs/decisions/ADR-004-数据库迁移策略.md",
+      "choice": "方案 A: 幂等迁移函数，后续再评估 Alembic"
+    }
+  ],
+
+  "implementation_commits": [
+    "ef18f59 feat(T1): add ip_address column to AuditLog model",
+    "8ab8f72 feat(T2): implement idempotent migration to add ip_address column",
+    "d53d894 feat(T3): extend log_action() to accept optional ip_address",
+    "d6d8504 feat(T4): create AuditLogger dependency for client IP extraction",
+    "c70cf7e feat(T5): add Pydantic schemas for audit log API",
+    "de5a4bd feat(T6): implement audit log query service with filters and pagination",
+    "bc9dff6 feat(T7): add GET /api/audit-logs endpoint (admin only)",
+    "ce34ef7 feat(T8): register audit log router and bump version to 0.0.2",
+    "463f387 feat(T9): wire AuditLogger into auth endpoints, add logout audit log",
+    "7579acb feat(T10): wire AuditLogger into user management endpoints",
+    "a3b6dae feat(T11): wire AuditLogger into contract management endpoints",
+    "94c87cd feat(T12): wire AuditLogger into attachment management endpoints",
+    "1901d8f feat(T13): add AuditLog TypeScript type definitions",
+    "3689b04 feat(T14): add audit log API module",
+    "fbb5a9a feat(T15): create audit log page with filters, table, and pagination",
+    "4397e11 feat(T16): add audit log nav entry and route (admin only)",
+    "d0f35e4 feat(T17): add audit log page CSS styles",
+    "130d777 feat(T18): add AuditLogger unit tests for IP extraction and log writing",
+    "1cd2747 feat(T19): add AuditLog API integration tests",
+    "6135fd6 feat(T20): update existing tests to verify ip_address in audit logs"
+  ],
+
+  "implementation_summary": {
+    "total_tasks": 20,
+    "new_files": [
+      "backend/app/middleware/audit.py",
+      "backend/app/schemas/audit_log.py",
+      "backend/app/services/audit_log_service.py",
+      "backend/app/routers/audit_logs.py",
+      "backend/tests/test_audit_logger.py",
+      "backend/tests/test_audit_api.py",
+      "frontend/src/api/auditLogs.ts",
+      "frontend/src/pages/AuditLogPage.tsx",
+      "docs/decisions/ADR-002-审计日志记录方式.md",
+      "docs/decisions/ADR-003-客户端IP获取策略.md",
+      "docs/decisions/ADR-004-数据库迁移策略.md"
+    ],
+    "modified_files": [
+      "backend/app/models/audit_log.py",
+      "backend/app/database.py",
+      "backend/app/utils/audit.py",
+      "backend/app/main.py",
+      "backend/app/services/auth_service.py",
+      "backend/app/services/user_service.py",
+      "backend/app/services/contract_service.py",
+      "backend/app/services/attachment_service.py",
+      "backend/app/routers/auth.py",
+      "backend/app/routers/users.py",
+      "backend/app/routers/contracts.py",
+      "backend/app/routers/attachments.py",
+      "backend/tests/test_auth.py",
+      "backend/tests/test_users.py",
+      "backend/tests/test_contracts.py",
+      "backend/tests/test_attachments.py",
+      "frontend/src/types/index.ts",
+      "frontend/src/App.tsx",
+      "frontend/src/components/Navbar.tsx",
+      "frontend/src/index.css",
+      "docs/architecture.md"
+    ]
+  },
+
+  "self_test_command": "cd backend && python -m pytest tests/ -v",
+  "self_test_result": "89 passed, 0 failed",
+  "self_test_output_file": "evidence/claude/self-test-0.0.2.txt",
+
+  "frontend_build_command": "cd frontend && npm run build",
+  "frontend_build_result": "success — built in 96ms, dist/index.html + assets/index-BZr7LBEO.css (8.75KB) + assets/index-B_00UtN2.js (314.38KB)",
+
+  "audited_endpoints": {
+    "login": "user.login (was already logged, now with ip_address)",
+    "logout": "user.logout (NEW — was not audited before 0.0.2)",
+    "register": "user.register (was already logged, now with ip_address)",
+    "contract.create": "contract.create (was already logged, now with ip_address)",
+    "contract.update": "contract.update (was already logged, now with ip_address)",
+    "contract.delete": "contract.delete (was already logged, now with ip_address)",
+    "contract.status_change": "contract.status_change (was already logged, now with ip_address)",
+    "attachment.upload": "attachment.upload (was already logged, now with ip_address)",
+    "attachment.delete": "attachment.delete (was already logged, now with ip_address)",
+    "user.create": "user.create (was already logged, now with ip_address)",
+    "user.update": "user.update (was already logged, now with ip_address)",
+    "user.status_change": "user.status_change (was already logged, now with ip_address)"
+  },
+
+  "new_api": {
+    "method": "GET",
+    "path": "/api/audit-logs",
+    "auth": "JWT (require_admin)",
+    "params": "action, user_search, user_id, start_date, end_date, page, page_size",
+    "response": "{ total: int, items: AuditLog[] }"
+  },
+
+  "test_coverage": {
+    "unit_tests": "AuditLogger IP extraction (10 cases), private IP filter (6 cases), log_action with/without IP (2 cases)",
+    "integration_tests": "AuditLog API permissions (4 cases), filtering (5 cases), pagination (4 cases), sorting (1 case), response structure (2 cases)",
+    "existing_test_updates": "auth (2 new IP checks), users (1 new IP check), contracts (1 new IP check), attachments (1 new IP check)",
+    "total_new_test_cases": 39
+  },
+
+  "ready_for_verification": true
+}

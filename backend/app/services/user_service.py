@@ -41,7 +41,7 @@ def list_users(
     return {"total": total, "items": items}
 
 
-def create_user(db: Session, data: UserCreate, admin_id: int) -> User:
+def create_user(db: Session, data: UserCreate, admin_id: int, ip_address: str | None = None) -> User:
     """Create a new user (admin only)."""
     if db.query(User).filter(User.username == data.username).first():
         raise ValueError("用户名已存在")
@@ -60,7 +60,7 @@ def create_user(db: Session, data: UserCreate, admin_id: int) -> User:
     db.refresh(user)
 
     log_action(db, admin_id, "user.create", "user", user.id,
-               f"Created user {user.username} with role {user.role}")
+               f"Created user {user.username} with role {user.role}", ip_address=ip_address)
     return user
 
 
@@ -72,7 +72,7 @@ def get_user(db: Session, user_id: int) -> User:
     return user
 
 
-def update_user(db: Session, user_id: int, data: UserUpdate, admin_id: int) -> User:
+def update_user(db: Session, user_id: int, data: UserUpdate, admin_id: int, ip_address: str | None = None) -> User:
     """Update user fields. Only updates fields that are provided."""
     user = get_user(db, user_id)
 
@@ -96,11 +96,11 @@ def update_user(db: Session, user_id: int, data: UserUpdate, admin_id: int) -> U
     db.refresh(user)
 
     log_action(db, admin_id, "user.update", "user", user.id,
-               f"Updated user {user.username}")
+               f"Updated user {user.username}", ip_address=ip_address)
     return user
 
 
-def toggle_user_status(db: Session, user_id: int, status: str, admin_id: int) -> User:
+def toggle_user_status(db: Session, user_id: int, status: str, admin_id: int, ip_address: str | None = None) -> User:
     """Enable or disable a user."""
     user = get_user(db, user_id)
 
@@ -112,5 +112,5 @@ def toggle_user_status(db: Session, user_id: int, status: str, admin_id: int) ->
     db.refresh(user)
 
     log_action(db, admin_id, "user.status_change", "user", user.id,
-               f"Set user {user.username} status to {status}")
+               f"Set user {user.username} status to {status}", ip_address=ip_address)
     return user

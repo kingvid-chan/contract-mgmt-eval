@@ -69,6 +69,33 @@ export interface AttachmentListResponse {
   items: Attachment[];
 }
 
+export interface AuditLog {
+  id: number;
+  user_id: number;
+  username: string;
+  action: string;
+  target_type: string | null;
+  target_id: number | null;
+  detail: string | null;
+  ip_address: string | null;
+  created_at: string;
+}
+
+export interface AuditLogFilter {
+  action?: string;
+  user_search?: string;
+  user_id?: number;
+  start_date?: string;
+  end_date?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface AuditLogListResponse {
+  total: number;
+  items: AuditLog[];
+}
+
 export interface ApiError {
   detail: string;
 }

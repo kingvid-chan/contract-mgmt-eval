@@ -186,3 +186,45 @@ def test_upload_to_nonexistent_contract(admin_token, client):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert resp.status_code == 404
+
+
+def test_attachment_audit_log_ip(admin_token, client):
+    """Attachment upload/delete should record ip_address in audit log."""
+    from app.models import AuditLog
+    from tests.conftest import TestSessionLocal
+    import io
+
+    # Create contract
+    create = client.post(
+        "/api/contracts",
+        json={"title": "Audit Att", "contract_no": "AUDIT-A-001", "party_a": "A", "party_b": "B"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    cid = create.json()["id"]
+
+    # Upload attachment
+    upload = client.post(
+        f"/api/contracts/{cid}/attachments",
+        files={"file": ("audit.pdf", io.BytesIO(b"audit file"), "application/pdf")},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert upload.status_code == 201
+    aid = upload.json()["id"]
+
+    # Delete attachment
+    resp = client.delete(
+        f"/api/attachments/{aid}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 200
+
+    # Verify audit logs have ip_address
+    db = TestSessionLocal()
+    for action, target_id in [("attachment.upload", aid), ("attachment.delete", aid)]:
+        log = db.query(AuditLog).filter(
+            AuditLog.action == action,
+            AuditLog.target_id == target_id,
+        ).first()
+        assert log is not None, f"Expected audit log for {action}"
+        assert log.ip_address is not None, f"Expected ip_address for {action}"
+    db.close()

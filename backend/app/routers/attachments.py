@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.middleware.auth import get_current_user, security_scheme
+from app.middleware.audit import AuditLogger
 from app.models import User
 from app.schemas.attachment import AttachmentResponse, AttachmentListResponse
 from app.services import attachment_service
@@ -57,9 +58,10 @@ def upload_attachment(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    audit: AuditLogger = Depends(),
 ):
     """Upload an attachment (PDF/Word, ≤10MB)."""
-    return attachment_service.upload_attachment(db, contract_id, file, current_user)
+    return attachment_service.upload_attachment(db, contract_id, file, current_user, ip_address=audit.ip_address)
 
 
 @router.get(
@@ -113,7 +115,8 @@ def delete_attachment(
     attachment_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    audit: AuditLogger = Depends(),
 ):
     """Delete an attachment."""
-    attachment_service.delete_attachment(db, attachment_id, current_user)
+    attachment_service.delete_attachment(db, attachment_id, current_user, ip_address=audit.ip_address)
     return {"message": "附件已删除"}

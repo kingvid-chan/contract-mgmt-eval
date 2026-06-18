@@ -85,7 +85,7 @@ def list_contracts(
     return {"total": total, "items": [_to_response(c) for c in items]}
 
 
-def create_contract(db: Session, data: ContractCreate, user: User) -> Contract:
+def create_contract(db: Session, data: ContractCreate, user: User, ip_address: str | None = None) -> Contract:
     """Create a new contract with draft status."""
     if db.query(Contract).filter(Contract.contract_no == data.contract_no).first():
         raise ValueError("合同编号已存在")
@@ -107,7 +107,7 @@ def create_contract(db: Session, data: ContractCreate, user: User) -> Contract:
     db.refresh(contract)
 
     log_action(db, user.id, "contract.create", "contract", contract.id,
-               f"Created contract {contract.contract_no}")
+               f"Created contract {contract.contract_no}", ip_address=ip_address)
     return contract
 
 
@@ -120,7 +120,7 @@ def get_contract(db: Session, contract_id: int, user: User) -> dict:
     return _to_response(contract)
 
 
-def update_contract(db: Session, contract_id: int, data: ContractUpdate, user: User) -> dict:
+def update_contract(db: Session, contract_id: int, data: ContractUpdate, user: User, ip_address: str | None = None) -> dict:
     """Update contract fields."""
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
@@ -150,11 +150,11 @@ def update_contract(db: Session, contract_id: int, data: ContractUpdate, user: U
     db.refresh(contract)
 
     log_action(db, user.id, "contract.update", "contract", contract.id,
-               f"Updated contract {contract.contract_no}")
+               f"Updated contract {contract.contract_no}", ip_address=ip_address)
     return _to_response(contract)
 
 
-def delete_contract(db: Session, contract_id: int, user: User) -> None:
+def delete_contract(db: Session, contract_id: int, user: User, ip_address: str | None = None) -> None:
     """Delete a contract. Only draft status can be deleted."""
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
@@ -168,11 +168,11 @@ def delete_contract(db: Session, contract_id: int, user: User) -> None:
     db.commit()
 
     log_action(db, user.id, "contract.delete", "contract", contract_id,
-               f"Deleted contract {contract.contract_no}")
+               f"Deleted contract {contract.contract_no}", ip_address=ip_address)
 
 
 def update_contract_status(
-    db: Session, contract_id: int, new_status: str, user: User
+    db: Session, contract_id: int, new_status: str, user: User, ip_address: str | None = None
 ) -> dict:
     """Transition contract to a new status with validation."""
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
@@ -192,5 +192,6 @@ def update_contract_status(
     db.refresh(contract)
 
     log_action(db, user.id, "contract.status_change", "contract", contract.id,
-               f"Changed contract {contract.contract_no} status: {contract.status} → {new_status}")
+               f"Changed contract {contract.contract_no} status: {contract.status} → {new_status}",
+               ip_address=ip_address)
     return _to_response(contract)

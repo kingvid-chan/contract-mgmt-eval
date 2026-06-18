@@ -56,7 +56,7 @@ def validate_file(file: UploadFile) -> None:
 
 
 def upload_attachment(
-    db: Session, contract_id: int, file: UploadFile, user: User
+    db: Session, contract_id: int, file: UploadFile, user: User, ip_address: str | None = None
 ) -> Attachment:
     """Upload and store an attachment file."""
     _check_contract_ownership(db, contract_id, user)
@@ -97,7 +97,7 @@ def upload_attachment(
     db.refresh(attachment)
 
     log_action(db, user.id, "attachment.upload", "attachment", attachment.id,
-               f"Uploaded {attachment.original_name} ({file_size} bytes)")
+               f"Uploaded {attachment.original_name} ({file_size} bytes)", ip_address=ip_address)
 
     # Eager load uploader
     _ = attachment.uploader
@@ -132,7 +132,7 @@ def list_attachments(db: Session, contract_id: int, user: User) -> dict:
     return {"total": len(result), "items": result}
 
 
-def delete_attachment(db: Session, attachment_id: int, user: User) -> None:
+def delete_attachment(db: Session, attachment_id: int, user: User, ip_address: str | None = None) -> None:
     """Delete an attachment (record + file on disk)."""
     attachment = _check_attachment_ownership(db, attachment_id, user)
 
@@ -147,4 +147,4 @@ def delete_attachment(db: Session, attachment_id: int, user: User) -> None:
     db.commit()
 
     log_action(db, user.id, "attachment.delete", "attachment", attachment_id,
-               f"Deleted attachment {attachment.original_name}")
+               f"Deleted attachment {attachment.original_name}", ip_address=ip_address)

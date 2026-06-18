@@ -2,7 +2,7 @@
 
 ## 系统目标与边界
 
-合同管理系统-评测 (contract-mgmt-eval) 是一个基于 Web 的合同全生命周期管理演示系统，覆盖用户认证、角色权限管理、合同 CRUD 与状态流转、附件管理四大核心功能模块。
+合同管理系统-评测 (contract-mgmt-eval) 是一个基于 Web 的合同全生命周期管理演示系统，覆盖用户认证、角色权限管理、合同 CRUD 与状态流转、附件管理、操作审计日志五大核心功能模块。
 
 **边界**: 本地演示系统，不含 OAuth/SSO/LDAP 集成，不含真实合同数据，不含在线支付或电子签章。
 
@@ -22,6 +22,15 @@
 | 部署 | Uvicorn + Nginx | ASGI server + 反向代理 |
 
 ## 模块职责与依赖
+
+### 审计日志 (v0.0.2 新增)
+
+- **后端**: `middleware/audit.py` 提供 `AuditLogger` 依赖注入类，从 Request 提取客户端真实 IP（优先 X-Real-IP → X-Forwarded-For 首个非内网 IP → request.client.host）。独立于 `get_current_user`，仅依赖 `Request`。
+- **后端**: `services/audit_log_service.py` — 审计日志只读查询，JOIN users 表获取 username，支持按 action/user_search/user_id/date range 筛选，按 created_at DESC 分页。
+- **后端**: `routers/audit_logs.py` — `GET /api/audit-logs` 端点，仅 admin 可访问。
+- **前端**: `pages/AuditLogPage.tsx` — 审计日志页面（筛选栏 + 表格 + 分页），仅 admin 可见。
+- **IP 获取**: 兼容链 X-Real-IP → X-Forwarded-For (首个非内网) → request.client.host。
+- **数据库**: AuditLog 表新增 `ip_address` VARCHAR(45) 字段，通过幂等迁移函数自动添加。
 
 ### 前端模块
 
@@ -137,6 +146,7 @@ Browser                    FastAPI                    Database
 | GET | /api/contracts/{id}/attachments | ✓ | - | 附件列表 |
 | GET | /api/attachments/{id}/download | ✓ | - | 下载附件 |
 | DELETE | /api/attachments/{id} | ✓ | - | 删除附件 |
+| GET | /api/audit-logs | ✓ | admin | 审计日志列表 (筛选+分页) |
 | GET | /healthz | ✗ | - | 健康检查 |
 
 ## 测试策略
@@ -202,4 +212,7 @@ Browser                    FastAPI                    Database
 ## 关联 ADR 与最近变更
 
 - 2026-06-18: iteration/0.0.1 启动，初版架构确立
-- ADR: `docs/decisions/` 目录待填充架构决策记录
+- 2026-06-18: iteration/0.0.2 — 操作审计日志模块，新增 `GET /api/audit-logs` API、`AuditLogger` 依赖注入、前端审计日志页面
+- ADR-002: 审计日志记录方式 — FastAPI 依赖注入 (`docs/decisions/ADR-002-审计日志记录方式.md`)
+- ADR-003: 客户端 IP 获取策略 — 三层兼容链 (`docs/decisions/ADR-003-客户端IP获取策略.md`)
+- ADR-004: 数据库迁移策略 — 手动幂等 ALTER TABLE (`docs/decisions/ADR-004-数据库迁移策略.md`)

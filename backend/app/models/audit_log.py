@@ -17,6 +17,7 @@ class AuditLog(Base):
     target_type = Column(String(50), nullable=True)
     target_id = Column(Integer, nullable=True)
     detail = Column(Text, nullable=True)
+    ip_address = Column(String(45), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="audit_logs")

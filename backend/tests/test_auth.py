@@ -91,6 +91,43 @@ def test_password_reset_nonexistent(client):
     assert resp.status_code == 404
 
 
+def test_login_audit_log_with_ip(client):
+    """Login should create an audit log entry with ip_address."""
+    # Register first
+    client.post("/api/auth/register", json={
+        "username": "audittest", "email": "audit@test.com", "password": "test1234"
+    })
+    resp = client.post("/api/auth/login", json={
+        "username": "audittest", "password": "test1234"
+    })
+    assert resp.status_code == 200
+
+    from app.models import AuditLog
+    db = TestSessionLocal()
+    log = db.query(AuditLog).filter(
+        AuditLog.action == "user.login",
+    ).order_by(AuditLog.id.desc()).first()
+    db.close()
+    assert log is not None
+    assert log.ip_address is not None
+
+
+def test_logout_audit_log_with_ip(client, user_token):
+    """Logout should create an audit log entry with ip_address."""
+    client.post("/api/auth/logout", headers={
+        "Authorization": f"Bearer {user_token}"
+    })
+
+    from app.models import AuditLog
+    db = TestSessionLocal()
+    log = db.query(AuditLog).filter(
+        AuditLog.action == "user.logout"
+    ).order_by(AuditLog.id.desc()).first()
+    db.close()
+    assert log is not None
+    assert log.ip_address is not None
+
+
 def test_disabled_user_login(client, user_token):
     from app.models import User
 
