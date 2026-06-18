@@ -1,0 +1,526 @@
+{
+  "meta": {
+    "iteration": "0.0.1",
+    "project": "contract-mgmt-eval",
+    "created": "2026-06-18T10:30:00+00:00",
+    "author": "Claude CodingAgent (technical-expert)"
+  },
+
+  "architecture_overview": {
+    "summary": "React 18 + TypeScript SPA 前端，Python FastAPI REST API 后端，SQLite 数据库，JWT 认证，Nginx 反向代理部署至 /projects/contract-mgmt-eval/ 路径。前后端分离开发，生产环境由 FastAPI 统一 serve 静态资源，Nginx 反向代理。",
+    "key_decisions": [
+      "Vite 作为前端构建工具：快速 HMR，原生 TypeScript 支持，构建产物小",
+      "React Context + useReducer 管理认证状态：无需引入 Redux，状态简单",
+      "FastAPI mount 静态文件：生产环境无需额外 web server，简化部署",
+      "SQLite + SQLAlchemy create_all：演示项目无需 Alembic 迁移，种子数据脚本直接初始化",
+      "bcrypt + JWT (HS256)：标准认证方案，python-jose 实现 JWT，passlib 实现密码哈希",
+      "后端分层 router → service → repository：职责清晰，便于测试"
+    ]
+  },
+
+  "frontend": {
+    "framework": "React 18 + TypeScript",
+    "build_tool": "Vite 5",
+    "routing": "React Router v6",
+    "http_client": "Axios 1.x",
+    "state_management": "React Context (AuthContext) + useReducer",
+    "styling": "CSS Modules (plain CSS, no UI library — keep it simple)",
+
+    "project_structure": {
+      "root": "frontend/",
+      "layout": [
+        "frontend/package.json",
+        "frontend/tsconfig.json",
+        "frontend/vite.config.ts          — base: '/projects/contract-mgmt-eval/'",
+        "frontend/index.html              — 入口 HTML",
+        "frontend/public/                 — 静态资源",
+        "frontend/src/",
+        "frontend/src/main.tsx            — ReactDOM.createRoot 入口",
+        "frontend/src/App.tsx             — 路由定义，AuthProvider 包裹",
+        "frontend/src/index.css           — 全局样式",
+        "frontend/src/api/",
+        "frontend/src/api/client.ts       — Axios 实例，JWT interceptor，baseURL",
+        "frontend/src/api/auth.ts         — login, register, logout, resetPassword",
+        "frontend/src/api/users.ts        — listUsers, createUser, getUser, updateUser, toggleUserStatus",
+        "frontend/src/api/contracts.ts    — listContracts, createContract, getContract, updateContract, deleteContract, updateContractStatus",
+        "frontend/src/api/attachments.ts  — uploadAttachment, listAttachments, getAttachment, downloadAttachment, deleteAttachment",
+        "frontend/src/components/",
+        "frontend/src/components/Layout.tsx            — 全局布局 (Navbar + 内容区)",
+        "frontend/src/components/ProtectedRoute.tsx    — 认证守卫，未登录跳转 /login",
+        "frontend/src/components/AdminRoute.tsx         — 管理员守卫，非 admin 返回 403",
+        "frontend/src/components/Navbar.tsx             — 顶部导航栏，根据角色显示菜单",
+        "frontend/src/components/Pagination.tsx         — 通用分页组件",
+        "frontend/src/components/SearchBar.tsx           — 搜索+筛选栏",
+        "frontend/src/components/ConfirmDialog.tsx       — 确认对话框",
+        "frontend/src/components/LoadingSpinner.tsx      — 加载指示器",
+        "frontend/src/contexts/",
+        "frontend/src/contexts/AuthContext.tsx           — 认证 Context、Provider、useAuth hook",
+        "frontend/src/pages/",
+        "frontend/src/pages/LoginPage.tsx               — 登录页",
+        "frontend/src/pages/RegisterPage.tsx             — 注册页",
+        "frontend/src/pages/PasswordResetPage.tsx        — 密码重置页",
+        "frontend/src/pages/UserListPage.tsx             — 用户管理列表 (admin)",
+        "frontend/src/pages/UserFormPage.tsx             — 用户创建/编辑表单 (admin)",
+        "frontend/src/pages/ContractListPage.tsx         — 合同列表页",
+        "frontend/src/pages/ContractDetailPage.tsx       — 合同详情页 + 附件管理",
+        "frontend/src/pages/ContractFormPage.tsx         — 合同创建/编辑表单",
+        "frontend/src/pages/NotFoundPage.tsx             — 404 页面",
+        "frontend/src/types/",
+        "frontend/src/types/index.ts                    — 全局 TypeScript 类型定义",
+        "frontend/src/utils/",
+        "frontend/src/utils/index.ts                    — 工具函数 (日期格式化等)"
+      ]
+    },
+
+    "component_tree": {
+      "App": {
+        "AuthProvider": {
+          "BrowserRouter (basename='/projects/contract-mgmt-eval')": {
+            "Routes": [
+              "Route '/login' → LoginPage",
+              "Route '/register' → RegisterPage",
+              "Route '/reset-password' → PasswordResetPage",
+              "Route '/' → ProtectedRoute → Layout": {
+                "Outlet": [
+                  "Route 'users' → AdminRoute → UserListPage",
+                  "Route 'users/new' → AdminRoute → UserFormPage",
+                  "Route 'users/:id/edit' → AdminRoute → UserFormPage",
+                  "Route 'contracts' → ContractListPage",
+                  "Route 'contracts/new' → ContractFormPage",
+                  "Route 'contracts/:id' → ContractDetailPage",
+                  "Route 'contracts/:id/edit' → ContractFormPage",
+                  "Route '*' → NotFoundPage"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+
+    "routing_design": {
+      "base_path": "/projects/contract-mgmt-eval",
+      "routes": [
+        { "path": "/login", "component": "LoginPage", "auth": false },
+        { "path": "/register", "component": "RegisterPage", "auth": false },
+        { "path": "/reset-password", "component": "PasswordResetPage", "auth": false },
+        { "path": "/", "component": "ContractListPage (redirect)", "auth": true },
+        { "path": "/users", "component": "UserListPage", "auth": true, "admin": true },
+        { "path": "/users/new", "component": "UserFormPage", "auth": true, "admin": true },
+        { "path": "/users/:id/edit", "component": "UserFormPage", "auth": true, "admin": true },
+        { "path": "/contracts", "component": "ContractListPage", "auth": true },
+        { "path": "/contracts/new", "component": "ContractFormPage", "auth": true },
+        { "path": "/contracts/:id", "component": "ContractDetailPage", "auth": true },
+        { "path": "/contracts/:id/edit", "component": "ContractFormPage", "auth": true },
+        { "path": "*", "component": "NotFoundPage", "auth": false }
+      ]
+    },
+
+    "auth_flow_frontend": {
+      "context": "AuthContext 提供: user, token, isAuthenticated, isAdmin, login(), register(), logout()",
+      "token_storage": "localStorage 存储 JWT token，页面刷新时从 localStorage 恢复",
+      "axios_interceptor": "请求拦截器自动添加 Authorization: Bearer <token>；响应拦截器捕获 401 自动登出并跳转登录页",
+      "protected_route": "ProtectedRoute 组件检查 isAuthenticated，未认证 → Navigate to /login",
+      "admin_route": "AdminRoute 组件检查 isAdmin，非管理员 → 显示 403 页面"
+    }
+  },
+
+  "backend": {
+    "framework": "Python 3.11+ FastAPI",
+    "orm": "SQLAlchemy 2.x",
+    "auth_library": "python-jose (JWT), passlib[bcrypt] (密码哈希)",
+    "database": "SQLite",
+    "server": "Uvicorn",
+
+    "project_structure": {
+      "root": "backend/",
+      "layout": [
+        "backend/requirements.txt",
+        "backend/app/",
+        "backend/app/__init__.py",
+        "backend/app/main.py               — FastAPI 应用创建、CORS、中间件、router 注册、静态文件 mount、healthz",
+        "backend/app/config.py             — Settings (SECRET_KEY, DATABASE_URL, UPLOAD_DIR 等)",
+        "backend/app/database.py           — SQLAlchemy engine、SessionLocal、Base、get_db dependency",
+        "backend/app/models/",
+        "backend/app/models/__init__.py    — 导出所有模型",
+        "backend/app/models/user.py        — User 模型",
+        "backend/app/models/contract.py    — Contract 模型",
+        "backend/app/models/attachment.py  — Attachment 模型",
+        "backend/app/models/audit_log.py   — AuditLog 模型",
+        "backend/app/schemas/",
+        "backend/app/schemas/__init__.py",
+        "backend/app/schemas/auth.py       — LoginRequest, RegisterRequest, TokenResponse, PasswordResetRequest",
+        "backend/app/schemas/user.py       — UserCreate, UserUpdate, UserResponse, UserStatusUpdate",
+        "backend/app/schemas/contract.py   — ContractCreate, ContractUpdate, ContractResponse, ContractStatusUpdate",
+        "backend/app/schemas/attachment.py — AttachmentResponse, AttachmentUploadResponse",
+        "backend/app/routers/",
+        "backend/app/routers/__init__.py",
+        "backend/app/routers/auth.py       — /api/auth/* 路由",
+        "backend/app/routers/users.py      — /api/users/* 路由",
+        "backend/app/routers/contracts.py  — /api/contracts/* 路由",
+        "backend/app/routers/attachments.py — /api/attachments/* 路由",
+        "backend/app/services/",
+        "backend/app/services/__init__.py",
+        "backend/app/services/auth_service.py      — 注册、登录、密码重置业务逻辑",
+        "backend/app/services/user_service.py      — 用户 CRUD 业务逻辑",
+        "backend/app/services/contract_service.py  — 合同 CRUD + 状态流转业务逻辑",
+        "backend/app/services/attachment_service.py — 附件上传/下载/删除业务逻辑",
+        "backend/app/middleware/",
+        "backend/app/middleware/__init__.py",
+        "backend/app/middleware/auth.py            — JWT 认证依赖注入 get_current_user, require_admin",
+        "backend/app/utils/",
+        "backend/app/utils/__init__.py",
+        "backend/app/utils/security.py             — create_access_token, verify_token, hash_password, verify_password",
+        "backend/app/utils/audit.py                 — log_action 辅助函数",
+        "backend/seed_data.py                      — 种子数据脚本 (admin/admin123, user/user123, 示例合同)",
+        "backend/uploads/                           — 附件上传目录 (gitignore)"
+      ]
+    },
+
+    "layered_architecture": {
+      "router": "处理 HTTP 请求/响应，参数校验 (Pydantic)，调用 service 层，返回响应。不包含业务逻辑。",
+      "service": "业务逻辑层。包含认证、授权检查、数据验证、状态流转规则。调用 repository 层访问数据库。",
+      "repository": "数据访问层 (隐含在 SQLAlchemy session 操作中)。service 层通过 db: Session 参数直接操作模型。对于演示项目，不抽象独立 repository 层，service 直接使用 SQLAlchemy query。",
+      "middleware": "认证中间件作为 FastAPI Depends 注入：get_current_user 从 JWT 解析用户，require_admin 检查角色。"
+    },
+
+    "api_endpoints": {
+      "auth": [
+        { "method": "POST", "path": "/api/auth/register", "handler": "register", "auth": false, "description": "注册新用户 (默认 role=user)" },
+        { "method": "POST", "path": "/api/auth/login", "handler": "login", "auth": false, "description": "用户名+密码登录，返回 JWT access_token" },
+        { "method": "POST", "path": "/api/auth/logout", "handler": "logout", "auth": false, "description": "登出 (前端清除 token，后端可扩展黑名单)" },
+        { "method": "POST", "path": "/api/auth/password-reset", "handler": "request_password_reset", "auth": false, "description": "请求密码重置 (演示版：直接返回新密码，不发送邮件)" }
+      ],
+      "users": [
+        { "method": "GET", "path": "/api/users", "handler": "list_users", "auth": true, "admin": true, "description": "获取用户列表" },
+        { "method": "POST", "path": "/api/users", "handler": "create_user", "auth": true, "admin": true, "description": "管理员创建用户" },
+        { "method": "GET", "path": "/api/users/me", "handler": "get_current_user_info", "auth": true, "description": "获取当前登录用户信息" },
+        { "method": "GET", "path": "/api/users/{user_id}", "handler": "get_user", "auth": true, "admin": true, "description": "获取指定用户详情" },
+        { "method": "PUT", "path": "/api/users/{user_id}", "handler": "update_user", "auth": true, "admin": true, "description": "更新用户信息" },
+        { "method": "PATCH", "path": "/api/users/{user_id}/status", "handler": "toggle_user_status", "auth": true, "admin": true, "description": "启用/禁用用户" }
+      ],
+      "contracts": [
+        { "method": "GET", "path": "/api/contracts", "handler": "list_contracts", "auth": true, "description": "合同列表 (支持 ?search=&status=&page=&page_size=&sort_by=&sort_order=)" },
+        { "method": "POST", "path": "/api/contracts", "handler": "create_contract", "auth": true, "description": "创建合同 (默认 status=draft)" },
+        { "method": "GET", "path": "/api/contracts/{contract_id}", "handler": "get_contract", "auth": true, "description": "合同详情 (含附件列表)" },
+        { "method": "PUT", "path": "/api/contracts/{contract_id}", "handler": "update_contract", "auth": true, "description": "更新合同信息" },
+        { "method": "DELETE", "path": "/api/contracts/{contract_id}", "handler": "delete_contract", "auth": true, "description": "删除合同 (仅 draft 状态可删)" },
+        { "method": "PATCH", "path": "/api/contracts/{contract_id}/status", "handler": "update_contract_status", "auth": true, "description": "合同状态流转 (draft→active, active→terminated, active→expired)" }
+      ],
+      "attachments": [
+        { "method": "POST", "path": "/api/contracts/{contract_id}/attachments", "handler": "upload_attachment", "auth": true, "description": "上传附件 (PDF/Word, ≤10MB)" },
+        { "method": "GET", "path": "/api/contracts/{contract_id}/attachments", "handler": "list_attachments", "auth": true, "description": "合同附件列表" },
+        { "method": "GET", "path": "/api/attachments/{attachment_id}", "handler": "get_attachment_info", "auth": true, "description": "附件元信息" },
+        { "method": "GET", "path": "/api/attachments/{attachment_id}/download", "handler": "download_attachment", "auth": true, "description": "下载附件文件" },
+        { "method": "DELETE", "path": "/api/attachments/{attachment_id}", "handler": "delete_attachment", "auth": true, "description": "删除附件" }
+      ],
+      "system": [
+        { "method": "GET", "path": "/healthz", "handler": "health_check", "auth": false, "description": "健康检查，返回 {\"status\":\"ok\"}" }
+      ]
+    },
+
+    "cors": {
+      "allow_origins": ["*"],
+      "allow_methods": ["*"],
+      "allow_headers": ["*"],
+      "allow_credentials": true,
+      "note": "演示环境允许所有来源。生产环境应限制为具体域名。"
+    },
+
+    "static_files": {
+      "mount_path": "/projects/contract-mgmt-eval",
+      "directory": "../frontend/dist",
+      "html": true,
+      "cache_control": "no-cache",
+      "note": "所有 HTML 响应必须携带 Cache-Control: no-cache HTTP 响应头。静态资源 (JS/CSS) 已由 Vite 内联版本哈希或通过 ?v= 令牌控制缓存，也可设 max-age=0。"
+    }
+  },
+
+  "database": {
+    "engine": "SQLite",
+    "orm": "SQLAlchemy 2.x ORM",
+    "db_path": "backend/contract_mgmt.db",
+    "migration_strategy": "create_all + seed — 演示项目不引入 Alembic。表结构变更时重新 create_all。",
+    "foreign_keys": "PRAGMA foreign_keys = ON (SQLite 默认不启用外键约束，需显式开启)",
+
+    "models": {
+      "User": {
+        "table": "users",
+        "columns": {
+          "id": "Integer, primary_key, autoincrement",
+          "username": "String(50), unique, not null, index",
+          "email": "String(100), unique, not null",
+          "password_hash": "String(255), not null",
+          "role": "String(10), default='user', check in ('admin','user')",
+          "status": "String(10), default='active', check in ('active','disabled')",
+          "created_at": "DateTime, default=utcnow",
+          "updated_at": "DateTime, default=utcnow, onupdate=utcnow"
+        },
+        "relationships": [
+          "contracts: relationship('Contract', back_populates='creator')",
+          "audit_logs: relationship('AuditLog', back_populates='user')"
+        ]
+      },
+      "Contract": {
+        "table": "contracts",
+        "columns": {
+          "id": "Integer, primary_key, autoincrement",
+          "title": "String(200), not null",
+          "contract_no": "String(50), unique, not null, index",
+          "party_a": "String(200), not null",
+          "party_b": "String(200), not null",
+          "amount": "Float, nullable, default=0.0",
+          "status": "String(20), default='draft', check in ('draft','active','terminated','expired')",
+          "sign_date": "Date, nullable",
+          "expiry_date": "Date, nullable",
+          "content": "Text, nullable, default='' (合同正文/备注)",
+          "created_by": "Integer, ForeignKey('users.id'), not null",
+          "created_at": "DateTime, default=utcnow",
+          "updated_at": "DateTime, default=utcnow, onupdate=utcnow"
+        },
+        "relationships": [
+          "creator: relationship('User', back_populates='contracts')",
+          "attachments: relationship('Attachment', back_populates='contract', cascade='all, delete-orphan')"
+        ]
+      },
+      "Attachment": {
+        "table": "attachments",
+        "columns": {
+          "id": "Integer, primary_key, autoincrement",
+          "contract_id": "Integer, ForeignKey('contracts.id', ondelete='CASCADE'), not null",
+          "filename": "String(255), not null (存储后文件名 UUID)",
+          "original_name": "String(255), not null (原始文件名)",
+          "file_type": "String(20), not null, check in ('pdf','doc','docx')",
+          "file_size": "Integer, not null (bytes)",
+          "file_path": "String(500), not null (服务器存储路径)",
+          "uploaded_by": "Integer, ForeignKey('users.id'), not null",
+          "uploaded_at": "DateTime, default=utcnow"
+        },
+        "relationships": [
+          "contract: relationship('Contract', back_populates='attachments')",
+          "uploader: relationship('User')"
+        ]
+      },
+      "AuditLog": {
+        "table": "audit_logs",
+        "columns": {
+          "id": "Integer, primary_key, autoincrement",
+          "user_id": "Integer, ForeignKey('users.id'), not null",
+          "action": "String(50), not null (e.g. 'contract.create', 'user.delete')",
+          "target_type": "String(50), nullable (e.g. 'contract', 'user', 'attachment')",
+          "target_id": "Integer, nullable",
+          "detail": "Text, nullable (JSON string with operation details)",
+          "created_at": "DateTime, default=utcnow"
+        },
+        "relationships": [
+          "user: relationship('User', back_populates='audit_logs')"
+        ]
+      }
+    },
+
+    "seed_data": {
+      "script": "backend/seed_data.py",
+      "demo_users": [
+        { "username": "admin", "email": "admin@example.com", "password": "admin123", "role": "admin", "status": "active" },
+        { "username": "user", "email": "user@example.com", "password": "user123", "role": "user", "status": "active" }
+      ],
+      "sample_contracts": [
+        { "title": "2026年度办公用品采购合同", "contract_no": "HT-2026-001", "party_a": "ABC科技有限公司", "party_b": "XYZ贸易有限公司", "amount": 150000.00, "status": "active", "sign_date": "2026-01-15", "expiry_date": "2026-12-31" },
+        { "title": "软件开发服务合同", "contract_no": "HT-2026-002", "party_a": "DEF信息技术有限公司", "party_b": "GHI数据服务有限公司", "amount": 500000.00, "status": "draft", "sign_date": null, "expiry_date": null },
+        { "title": "2025年办公场地租赁合同", "contract_no": "HT-2025-003", "party_a": "JKL房地产有限公司", "party_b": "ABC科技有限公司", "amount": 360000.00, "status": "terminated", "sign_date": "2025-03-01", "expiry_date": "2026-02-28" }
+      ]
+    }
+  },
+
+  "business_model": {
+    "entity_relationships": {
+      "description": "User 1:N Contract (created_by), Contract 1:N Attachment (contract_id), User 1:N AuditLog (user_id)",
+      "cardinality": {
+        "User → Contract": "一个用户可创建多个合同，一个合同属于一个创建者",
+        "Contract → Attachment": "一个合同可有多个附件，一个附件属于一个合同",
+        "User → AuditLog": "一个用户可有多条审计日志，一条日志属于一个用户"
+      }
+    },
+
+    "status_flow": {
+      "Contract": {
+        "states": ["draft", "active", "terminated", "expired"],
+        "transitions": [
+          { "from": "draft", "to": "active", "action": "activate", "description": "激活合同，使其生效" },
+          { "from": "active", "to": "terminated", "action": "terminate", "description": "提前终止合同" },
+          { "from": "active", "to": "expired", "action": "expire", "description": "合同到期 (可手动标记或自动)" },
+          { "from": "draft", "to": "deleted", "action": "delete", "description": "删除草稿合同 (物理删除)" }
+        ],
+        "constraints": [
+          "draft 状态可删除，其他状态不可删除",
+          "只能从 draft 转为 active",
+          "只能从 active 转为 terminated 或 expired",
+          "terminated 和 expired 是终态，不可再流转",
+          "sign_date 在 active 时必填"
+        ]
+      },
+      "User": {
+        "states": ["active", "disabled"],
+        "transitions": [
+          { "from": "active", "to": "disabled", "action": "disable", "description": "管理员禁用用户" },
+          { "from": "disabled", "to": "active", "action": "enable", "description": "管理员启用用户" }
+        ]
+      }
+    },
+
+    "role_permission_matrix": {
+      "columns": ["admin", "user", "unauthenticated"],
+      "permissions": [
+        { "action": "register", "admin": "✓", "user": "✓", "unauthenticated": "✓" },
+        { "action": "login", "admin": "✓", "user": "✓", "unauthenticated": "✓" },
+        { "action": "reset_password", "admin": "✓", "user": "✓", "unauthenticated": "✓" },
+        { "action": "view_own_profile", "admin": "✓", "user": "✓", "unauthenticated": "✗" },
+        { "action": "list_users", "admin": "✓", "user": "✗", "unauthenticated": "✗" },
+        { "action": "create_user", "admin": "✓", "user": "✗", "unauthenticated": "✗" },
+        { "action": "edit_user", "admin": "✓", "user": "✗", "unauthenticated": "✗" },
+        { "action": "disable_user", "admin": "✓", "user": "✗", "unauthenticated": "✗" },
+        { "action": "list_contracts", "admin": "✓ (all)", "user": "✓ (own only)", "unauthenticated": "✗" },
+        { "action": "create_contract", "admin": "✓", "user": "✓", "unauthenticated": "✗" },
+        { "action": "view_contract", "admin": "✓ (all)", "user": "✓ (own only)", "unauthenticated": "✗" },
+        { "action": "edit_contract", "admin": "✓ (all)", "user": "✓ (own only)", "unauthenticated": "✗" },
+        { "action": "delete_contract", "admin": "✓ (own/all)", "user": "✓ (own, draft only)", "unauthenticated": "✗" },
+        { "action": "update_contract_status", "admin": "✓ (all)", "user": "✓ (own only)", "unauthenticated": "✗" },
+        { "action": "upload_attachment", "admin": "✓", "user": "✓ (own contracts)", "unauthenticated": "✗" },
+        { "action": "download_attachment", "admin": "✓", "user": "✓ (own contracts)", "unauthenticated": "✗" },
+        { "action": "delete_attachment", "admin": "✓", "user": "✓ (own contracts)", "unauthenticated": "✗" }
+      ]
+    }
+  },
+
+  "product_flows_to_endpoints": {
+    "registration_login": [
+      { "step": "访问注册页 → 填写用户名/邮箱/密码 → 注册成功", "endpoint": "POST /api/auth/register", "frontend": "RegisterPage" },
+      { "step": "登录 → 获取 JWT → 跳转首页", "endpoint": "POST /api/auth/login", "frontend": "LoginPage" },
+      { "step": "登出 → 清除 token → 跳转登录页", "endpoint": "POST /api/auth/logout", "frontend": "Navbar logout button" },
+      { "step": "忘记密码 → 输入邮箱 → 重置密码", "endpoint": "POST /api/auth/password-reset", "frontend": "PasswordResetPage" }
+    ],
+    "user_management": [
+      { "step": "管理员查看用户列表", "endpoint": "GET /api/users", "frontend": "UserListPage" },
+      { "step": "创建新用户", "endpoint": "POST /api/users", "frontend": "UserFormPage" },
+      { "step": "编辑用户信息", "endpoint": "PUT /api/users/{id}", "frontend": "UserFormPage" },
+      { "step": "启用/禁用用户", "endpoint": "PATCH /api/users/{id}/status", "frontend": "UserListPage" }
+    ],
+    "contract_management": [
+      { "step": "查看合同列表 (搜索/筛选/分页)", "endpoint": "GET /api/contracts?search=&status=&page=&page_size=", "frontend": "ContractListPage" },
+      { "step": "创建合同 (保存为草稿)", "endpoint": "POST /api/contracts", "frontend": "ContractFormPage" },
+      { "step": "查看合同详情", "endpoint": "GET /api/contracts/{id}", "frontend": "ContractDetailPage" },
+      { "step": "编辑合同", "endpoint": "PUT /api/contracts/{id}", "frontend": "ContractFormPage" },
+      { "step": "删除合同", "endpoint": "DELETE /api/contracts/{id}", "frontend": "ContractListPage / ContractDetailPage" },
+      { "step": "合同状态流转 (激活/终止/到期)", "endpoint": "PATCH /api/contracts/{id}/status", "frontend": "ContractDetailPage status action buttons" }
+    ],
+    "attachment_management": [
+      { "step": "上传附件 (PDF/Word ≤10MB)", "endpoint": "POST /api/contracts/{id}/attachments", "frontend": "ContractDetailPage upload area" },
+      { "step": "查看附件列表", "endpoint": "GET /api/contracts/{id}/attachments", "frontend": "ContractDetailPage attachment section" },
+      { "step": "下载附件", "endpoint": "GET /api/attachments/{id}/download", "frontend": "ContractDetailPage download button" },
+      { "step": "预览附件", "endpoint": "GET /api/attachments/{id}/download (Content-Disposition: inline)", "frontend": "新标签页打开" },
+      { "step": "删除附件", "endpoint": "DELETE /api/attachments/{id}", "frontend": "ContractDetailPage delete button" }
+    ],
+    "error_boundary": [
+      { "step": "未登录访问受保护页面", "behavior": "前端 ProtectedRoute 拦截 → 跳转 /login；后端 401" },
+      { "step": "普通用户访问管理页面", "behavior": "前端 AdminRoute 拦截 → 显示 403；后端 403" },
+      { "step": "上传非 PDF/Word 文件", "behavior": "后端校验文件扩展名和 MIME type → 400 错误" },
+      { "step": "上传超大文件 (>10MB)", "behavior": "后端校验 Content-Length → 413 或 400 错误" },
+      { "step": "重复合同编号", "behavior": "数据库 UNIQUE 约束 → 后端 409 Conflict" },
+      { "step": "重复用户名/邮箱", "behavior": "数据库 UNIQUE 约束 → 后端 409 Conflict" },
+      { "step": "修改非本人合同 (普通用户)", "behavior": "后端 permission check → 403 Forbidden" }
+    ]
+  },
+
+  "security": {
+    "jwt": {
+      "algorithm": "HS256",
+      "secret_key": "从环境变量 JWT_SECRET_KEY 读取，默认值用于开发",
+      "token_expiry": "access_token 有效期 24 小时",
+      "token_payload": "{ sub: user_id, username: username, role: role }",
+      "extraction": "从 Authorization: Bearer <token> 请求头提取"
+    },
+    "password": {
+      "hashing": "passlib bcrypt，12 rounds",
+      "storage": "仅存储 password_hash，不存储明文密码",
+      "validation": "注册时密码最少 6 字符"
+    },
+    "permission_middleware": {
+      "get_current_user": "Depends 注入：解析 JWT → 查询数据库 → 检查用户状态 (disabled 则 403) → 返回 User 对象",
+      "require_admin": "Depends 注入：调用 get_current_user → 检查 role == 'admin' → 否则 403"
+    },
+    "file_upload_security": {
+      "max_size": "10 MB (10 * 1024 * 1024 bytes)",
+      "allowed_extensions": [".pdf", ".doc", ".docx"],
+      "allowed_mime_types": ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+      "validation": "扩展名 + MIME type 双重校验",
+      "storage": "上传文件以 UUID 重命名存储，保留原始文件名在数据库 original_name 字段",
+      "directory": "backend/uploads/，不要直接暴露为静态目录，通过 API 下载"
+    },
+    "audit_logging": {
+      "events": [
+        "user.login", "user.logout", "user.register",
+        "user.create", "user.update", "user.delete", "user.status_change",
+        "contract.create", "contract.update", "contract.delete", "contract.status_change",
+        "attachment.upload", "attachment.download", "attachment.delete"
+      ],
+      "implementation": "service 层在关键操作后调用 audit.log_action(db, user_id, action, target_type, target_id, detail)"
+    }
+  },
+
+  "deployment": {
+    "base_path": "/projects/contract-mgmt-eval/",
+    "port": 19006,
+    "public_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+    "server": "aliyun-cowork",
+
+    "frontend_build": {
+      "vite_base": "/projects/contract-mgmt-eval/",
+      "react_router_basename": "/projects/contract-mgmt-eval",
+      "output_dir": "frontend/dist/"
+    },
+
+    "backend_serve": {
+      "static_mount": "FastAPI app.mount('/projects/contract-mgmt-eval', StaticFiles(directory='../frontend/dist', html=True))",
+      "api_prefix": "API 路由不额外加前缀，挂载在 /projects/contract-mgmt-eval/api/* 路径",
+      "note": "实际上由于 static mount 在 /projects/contract-mgmt-eval，API 路由需要放在此之前注册。FastAPI 的 app 挂起在根路径，但通过 router prefix='/api' 分组。在生产环境由 Nginx 代理。替代方案: FastAPI 使用 root_path='/projects/contract-mgmt-eval' 参数。"
+    },
+
+    "cache_control": {
+      "html": "所有 HTML 文档响应必须携带 Cache-Control: no-cache HTTP 响应头 (由 FastAPI 中间件实现)",
+      "static_assets": "JS/CSS 文件由 Vite 构建时自动带内容哈希，URL 如 /assets/index-abc123.js。FastAPI 对非 HTML 静态文件可设 Cache-Control: public, max-age=31536000",
+      "version_token": "HTML 中的静态资源引用带 ?v=0.0.1 查询参数，由 Vite 的 base 和 build 自动处理"
+    },
+
+    "healthz": {
+      "path": "/projects/contract-mgmt-eval/healthz",
+      "method": "GET",
+      "response": { "status": "ok", "version": "0.0.1", "timestamp": "ISO8601" },
+      "implementation": "FastAPI 路由，在 static mount 之前注册"
+    },
+
+    "nginx_config_overview": {
+      "listen": 80,
+      "server_name": "120.24.117.67",
+      "location_prefix": "/projects/contract-mgmt-eval/",
+      "proxy_pass": "http://127.0.0.1:19006",
+      "note": "Nginx 反代，不 strip 前缀，FastAPI 使用 root_path 参数配置。"
+    }
+  },
+
+  "startup_sequence": {
+    "local_dev": [
+      "cd backend && pip install -r requirements.txt",
+      "cd backend && python seed_data.py (初始化数据库 + 种子数据)",
+      "cd backend && uvicorn app.main:app --reload --port 8000",
+      "cd frontend && npm install && npm run dev",
+      "前端开发服务在 localhost:5173，API 代理到 localhost:8000"
+    ],
+    "production": [
+      "cd backend && pip install -r requirements.txt",
+      "cd backend && python seed_data.py",
+      "cd frontend && npm install && npm run build",
+      "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 19006 --root-path /projects/contract-mgmt-eval",
+      "访问 http://120.24.117.67/projects/contract-mgmt-eval/"
+    ]
+  }
+}

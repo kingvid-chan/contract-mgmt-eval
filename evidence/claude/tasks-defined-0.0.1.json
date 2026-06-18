@@ -1,0 +1,342 @@
+{
+  "meta": {
+    "iteration": "0.0.1",
+    "project": "contract-mgmt-eval",
+    "created": "2026-06-18T10:30:00+00:00",
+    "author": "Claude CodingAgent (technical-expert)",
+    "total_tasks": 13
+  },
+
+  "tasks": [
+    {
+      "id": "T1",
+      "name": "项目脚手架搭建",
+      "description": "创建前后端目录结构、安装依赖、编写基础配置文件、确保前后端均可启动",
+      "files_involved": [
+        "backend/requirements.txt",
+        "backend/app/__init__.py",
+        "backend/app/main.py (最小可启动 FastAPI 实例 + CORS + healthz)",
+        "backend/app/config.py",
+        "backend/app/database.py",
+        "frontend/package.json",
+        "frontend/tsconfig.json",
+        "frontend/vite.config.ts",
+        "frontend/index.html",
+        "frontend/src/main.tsx",
+        "frontend/src/App.tsx (最小路由骨架)",
+        "frontend/src/index.css",
+        ".gitignore (追加 backend/uploads/, *.db)"
+      ],
+      "acceptance_criteria": [
+        "pip install -r backend/requirements.txt 成功",
+        "uvicorn app.main:app --port 8000 返回 {\"status\":\"ok\"} at GET /healthz",
+        "npm install && npm run dev 前端 dev server 启动成功",
+        "npm run build 构建成功输出 frontend/dist/"
+      ],
+      "estimated_commit": "feat(T1): scaffold project structure with FastAPI and React 18 + TypeScript"
+    },
+    {
+      "id": "T2",
+      "name": "数据库模型与初始化",
+      "description": "定义 SQLAlchemy 模型 (User, Contract, Attachment, AuditLog)、创建数据库 schema、编写种子数据脚本",
+      "files_involved": [
+        "backend/app/models/__init__.py",
+        "backend/app/models/user.py",
+        "backend/app/models/contract.py",
+        "backend/app/models/attachment.py",
+        "backend/app/models/audit_log.py",
+        "backend/app/database.py (补充 Base.metadata.create_all 逻辑)",
+        "backend/app/config.py (补充 DATABASE_URL)",
+        "backend/seed_data.py",
+        "backend/app/main.py (注册 startup event 调用初始化)"
+      ],
+      "acceptance_criteria": [
+        "python -c 'from app.database import engine, Base; Base.metadata.create_all(bind=engine)' 创建四张表成功",
+        "python seed_data.py 插入 demo 用户 (admin/admin123, user/user123) 和 3 条示例合同",
+        "外键约束生效 (PRAGMA foreign_keys = ON)",
+        "User.role check 约束生效，不可插入非法值"
+      ],
+      "estimated_commit": "feat(T2): add SQLAlchemy models and seed data script"
+    },
+    {
+      "id": "T3",
+      "name": "后端认证模块",
+      "description": "实现注册、登录、登出、密码重置 API，JWT token 签发与验证，密码 bcrypt 哈希",
+      "files_involved": [
+        "backend/app/utils/__init__.py",
+        "backend/app/utils/security.py",
+        "backend/app/schemas/auth.py",
+        "backend/app/services/auth_service.py",
+        "backend/app/routers/auth.py",
+        "backend/app/middleware/__init__.py",
+        "backend/app/middleware/auth.py (get_current_user dependency)",
+        "backend/app/main.py (注册 auth router)"
+      ],
+      "acceptance_criteria": [
+        "POST /api/auth/register {\"username\":\"test\",\"email\":\"test@test.com\",\"password\":\"123456\"} → 201 创建用户",
+        "POST /api/auth/login {\"username\":\"test\",\"password\":\"123456\"} → 200 返回 access_token",
+        "GET /api/users/me (带 Bearer token) → 200 返回当前用户信息",
+        "GET /api/users/me (无 token) → 401",
+        "POST /api/auth/login (错误密码) → 401",
+        "POST /api/auth/register (重复用户名) → 409",
+        "POST /api/auth/password-reset {\"email\":\"test@test.com\"} → 200 重置密码成功",
+        "POST /api/auth/logout → 200"
+      ],
+      "estimated_commit": "feat(T3): implement auth endpoints (register/login/logout/password-reset) with JWT"
+    },
+    {
+      "id": "T4",
+      "name": "后端用户管理模块",
+      "description": "实现管理员用户 CRUD API：列表、详情、创建、编辑、启用/禁用，含权限校验",
+      "files_involved": [
+        "backend/app/schemas/user.py",
+        "backend/app/services/user_service.py",
+        "backend/app/routers/users.py",
+        "backend/app/middleware/auth.py (补充 require_admin dependency)",
+        "backend/app/main.py (注册 users router)"
+      ],
+      "acceptance_criteria": [
+        "GET /api/users (admin token) → 200 返回用户列表",
+        "GET /api/users (user token) → 403",
+        "POST /api/users {\"username\":\"new\",\"email\":\"new@t.com\",\"password\":\"pass\",\"role\":\"user\"} (admin) → 201",
+        "GET /api/users/{id} (admin) → 200 用户详情",
+        "PUT /api/users/{id} (admin) → 200 更新成功",
+        "PATCH /api/users/{id}/status (admin) → 200 状态切换成功",
+        "disabled 用户登录 → 403"
+      ],
+      "estimated_commit": "feat(T4): implement user management CRUD with admin role guard"
+    },
+    {
+      "id": "T5",
+      "name": "后端合同管理模块",
+      "description": "实现合同 CRUD API，含搜索/筛选/分页、状态流转校验、权限控制（普通用户只能操作自己的合同）",
+      "files_involved": [
+        "backend/app/schemas/contract.py",
+        "backend/app/services/contract_service.py",
+        "backend/app/routers/contracts.py",
+        "backend/app/main.py (注册 contracts router)"
+      ],
+      "acceptance_criteria": [
+        "POST /api/contracts (创建) → 201 新合同 status=draft",
+        "GET /api/contracts → 200 分页列表，admin 看全部，user 只看自己创建的",
+        "GET /api/contracts?search=关键词&status=active → 200 搜索筛选正确",
+        "GET /api/contracts/{id} → 200 合同详情",
+        "PUT /api/contracts/{id} → 200 更新成功 (非本人合同 user → 403)",
+        "DELETE /api/contracts/{id} (draft) → 200 删除成功",
+        "DELETE /api/contracts/{id} (active) → 400 不可删除",
+        "PATCH /api/contracts/{id}/status {\"status\":\"active\"} (from draft) → 200",
+        "PATCH 非法流转 draft→terminated → 400",
+        "重复 contract_no → 409"
+      ],
+      "estimated_commit": "feat(T5): implement contract CRUD with search, pagination, and status flow"
+    },
+    {
+      "id": "T6",
+      "name": "后端附件管理模块",
+      "description": "实现附件上传/下载/预览/删除 API，含格式校验、大小限制、权限控制",
+      "files_involved": [
+        "backend/app/schemas/attachment.py",
+        "backend/app/services/attachment_service.py",
+        "backend/app/routers/attachments.py",
+        "backend/app/main.py (注册 attachments router)",
+        "backend/app/config.py (补充 UPLOAD_DIR, MAX_UPLOAD_SIZE)"
+      ],
+      "acceptance_criteria": [
+        "POST /api/contracts/{id}/attachments (上传 PDF/Word) → 201 上传成功",
+        "上传非 PDF/Word 文件 → 400 格式错误",
+        "上传 >10MB 文件 → 413 或 400",
+        "GET /api/contracts/{id}/attachments → 200 附件列表",
+        "GET /api/attachments/{id}/download → 200 文件流下载 (Content-Disposition: attachment)",
+        "GET /api/attachments/{id}/download?preview=true → 200 (Content-Disposition: inline)",
+        "DELETE /api/attachments/{id} → 200 删除成功，文件从磁盘移除",
+        "user 不能操作非本人合同的附件 → 403"
+      ],
+      "estimated_commit": "feat(T6): implement attachment upload/download/delete with format validation"
+    },
+    {
+      "id": "T7",
+      "name": "前端基础框架",
+      "description": "搭建 React 路由结构、全局布局、认证 Context、Axios 拦截器、保护路由组件",
+      "files_involved": [
+        "frontend/src/types/index.ts",
+        "frontend/src/api/client.ts",
+        "frontend/src/contexts/AuthContext.tsx",
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/components/Navbar.tsx",
+        "frontend/src/components/ProtectedRoute.tsx",
+        "frontend/src/components/AdminRoute.tsx",
+        "frontend/src/components/LoadingSpinner.tsx",
+        "frontend/src/components/ConfirmDialog.tsx",
+        "frontend/src/components/Pagination.tsx",
+        "frontend/src/components/SearchBar.tsx",
+        "frontend/src/App.tsx (完整路由)",
+        "frontend/src/pages/NotFoundPage.tsx",
+        "frontend/src/index.css (全局样式)",
+        "frontend/vite.config.ts (补充 proxy 配置)"
+      ],
+      "acceptance_criteria": [
+        "前端启动后，访问 / → 未登录跳转 /login",
+        "登录后 AuthContext 持有 token 和 user 信息",
+        "刷新页面后从 localStorage 恢复登录状态",
+        "AdminRoute 拦截非 admin 用户显示 403",
+        "Axios 拦截器自动附加 Authorization header",
+        "401 响应自动触发登出",
+        "Layout 正常渲染导航栏和子路由"
+      ],
+      "estimated_commit": "feat(T7): build frontend framework with routing, auth context, and API client"
+    },
+    {
+      "id": "T8",
+      "name": "前端登录/注册页面",
+      "description": "实现登录、注册、密码重置页面，表单项校验，API 对接，错误提示",
+      "files_involved": [
+        "frontend/src/api/auth.ts",
+        "frontend/src/pages/LoginPage.tsx",
+        "frontend/src/pages/RegisterPage.tsx",
+        "frontend/src/pages/PasswordResetPage.tsx"
+      ],
+      "acceptance_criteria": [
+        "登录页：输入 admin/admin123 → 登录成功 → 跳转合同列表",
+        "登录页：错误密码 → 显示错误提示 \"用户名或密码错误\"",
+        "注册页：填写信息 → 注册成功 → 提示跳转登录",
+        "注册页：用户名/邮箱重复 → 显示对应错误",
+        "密码重置页：输入邮箱 → 重置成功提示",
+        "页面间导航 (login ↔ register ↔ reset-password) 正常"
+      ],
+      "estimated_commit": "feat(T8): implement login, register, and password reset pages"
+    },
+    {
+      "id": "T9",
+      "name": "前端用户管理页面",
+      "description": "实现用户列表页（表格）、用户创建/编辑表单页，对接后端 API，仅管理员可访问",
+      "files_involved": [
+        "frontend/src/api/users.ts",
+        "frontend/src/pages/UserListPage.tsx",
+        "frontend/src/pages/UserFormPage.tsx"
+      ],
+      "acceptance_criteria": [
+        "admin 登录 → 导航栏显示「用户管理」→ 点击进入用户列表",
+        "用户列表显示所有用户 (用户名、邮箱、角色、状态、操作按钮)",
+        "点击「创建用户」→ 表单页 → 填写信息 → 保存 → 返回列表",
+        "点击「编辑」→ 表单页预填数据 → 修改 → 保存",
+        "点击「启用/禁用」→ 确认 → 状态切换 → 列表刷新",
+        "user 登录 → 导航栏无「用户管理」→ 手动访问 /users → 403"
+      ],
+      "estimated_commit": "feat(T9): implement user management pages (admin only)"
+    },
+    {
+      "id": "T10",
+      "name": "前端合同管理页面",
+      "description": "实现合同列表页（搜索/筛选/分页）、合同详情页（含状态操作按钮）、合同创建/编辑表单页",
+      "files_involved": [
+        "frontend/src/api/contracts.ts",
+        "frontend/src/pages/ContractListPage.tsx",
+        "frontend/src/pages/ContractDetailPage.tsx",
+        "frontend/src/pages/ContractFormPage.tsx"
+      ],
+      "acceptance_criteria": [
+        "合同列表页：显示合同卡片/表格，支持搜索合同编号/标题/甲乙方",
+        "合同列表页：状态筛选 (全部/草稿/生效/终止/到期) 正常工作",
+        "合同列表页：分页组件正常翻页",
+        "合同详情页：显示所有合同信息字段",
+        "合同详情页：根据状态显示可执行操作按钮 (激活/终止/到期/编辑/删除)",
+        "合同创建：填写表单 → 保存 → 跳转列表 (默认草稿)",
+        "合同编辑：预填数据 → 修改 → 保存",
+        "状态流转：草稿→激活 (弹窗确认)→列表刷新",
+        "删除：草稿可删，生效状态删除按钮 disabled + tooltip 提示",
+        "user 只能看到/操作自己创建的合同，看不到其他用户的合同"
+      ],
+      "estimated_commit": "feat(T10): implement contract list, detail, and form pages with status flow"
+    },
+    {
+      "id": "T11",
+      "name": "前端附件管理功能",
+      "description": "在合同详情页嵌入附件管理：上传区域、附件列表、下载/预览/删除按钮",
+      "files_involved": [
+        "frontend/src/api/attachments.ts",
+        "frontend/src/pages/ContractDetailPage.tsx (补充附件区域)"
+      ],
+      "acceptance_criteria": [
+        "合同详情页底部显示附件区域：上传按钮 + 已上传附件列表",
+        "点击上传 → 文件选择器 (accept=\".pdf,.doc,.docx\") → 上传成功 → 列表刷新",
+        "上传非 PDF/Word 文件 → 前端拦截提示",
+        "上传 >10MB 文件 → 前端拦截提示",
+        "点击下载 → 浏览器下载文件",
+        "点击预览 → 新标签页打开文件",
+        "点击删除 → 确认框 → 删除 → 列表刷新"
+      ],
+      "estimated_commit": "feat(T11): implement attachment upload, download, preview, and delete in UI"
+    },
+    {
+      "id": "T12",
+      "name": "前后端联调与 UI 细化",
+      "description": "全流程联调走查，修复前后端不一致问题，完善 UI 交互细节、错误处理、Loading 状态、空状态展示",
+      "files_involved": [
+        "frontend/src/pages/*.tsx (所有页面)",
+        "frontend/src/components/*.tsx",
+        "frontend/src/index.css",
+        "backend/app/main.py (可能需要调整)",
+        "backend/app/services/*.py (可能需要调整)"
+      ],
+      "acceptance_criteria": [
+        "全流程走通：注册 → 登录 → 创建合同 → 上传附件 → 激活合同 → 终止合同",
+        "管理员全流程走通：管理用户 → 查看所有合同",
+        "所有错误场景有用户友好的提示 (非原始 error message)",
+        "所有 API 调用有 Loading 状态指示",
+        "列表为空时显示空状态提示",
+        "表单提交中按钮 disabled 防重复提交",
+        "页面响应式基础适配 (桌面端为主)"
+      ],
+      "estimated_commit": "feat(T12): integration polish — loading states, error handling, empty states"
+    },
+    {
+      "id": "T13",
+      "name": "自测脚本编写与执行",
+      "description": "编写后端 pytest 测试脚本覆盖核心 API，编写前端功能验证 checklist，执行测试并输出结果",
+      "files_involved": [
+        "backend/tests/__init__.py",
+        "backend/tests/conftest.py",
+        "backend/tests/test_auth.py",
+        "backend/tests/test_users.py",
+        "backend/tests/test_contracts.py",
+        "backend/tests/test_attachments.py",
+        "evidence/claude/self-test-0.0.1.txt",
+        "evidence/claude/handoff-0.0.1.json"
+      ],
+      "acceptance_criteria": [
+        "pytest 全部后端测试通过",
+        "测试覆盖：认证 (注册/登录/登出/密码重置/无效token)",
+        "测试覆盖：用户管理 (CRUD/权限/状态切换)",
+        "测试覆盖：合同管理 (CRUD/搜索筛选分页/状态流转/权限隔离)",
+        "测试覆盖：附件管理 (上传/下载/删除/格式校验/权限)",
+        "self-test-0.0.1.txt 包含完整测试输出",
+        "handoff-0.0.1.json 包含 session_id, technical_plan, tasks, implementation_commits, self_test 等字段，ready_for_verification: true"
+      ],
+      "estimated_commit": "feat(T13): add pytest backend tests and self-test report"
+    }
+  ],
+
+  "commit_order": ["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12","T13"],
+
+  "dependency_graph": {
+    "T1": [],
+    "T2": ["T1"],
+    "T3": ["T2"],
+    "T4": ["T3"],
+    "T5": ["T3"],
+    "T6": ["T5"],
+    "T7": ["T1"],
+    "T8": ["T7"],
+    "T9": ["T7", "T4"],
+    "T10": ["T7", "T5"],
+    "T11": ["T10", "T6"],
+    "T12": ["T8", "T9", "T10", "T11"],
+    "T13": ["T12"]
+  },
+
+  "parallel_opportunities": [
+    "T4 和 T5 可并行 (都依赖 T3)",
+    "T8、T9、T10 可部分并行 (T8 不依赖后端完成，T9/T10 依赖后端)",
+    "T3 之后 T4/T5 可并行，T7 之后 T8/T9/T10 可部分并行"
+  ]
+}
