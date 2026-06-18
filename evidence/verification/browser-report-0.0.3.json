@@ -1,0 +1,136 @@
+{
+  "schema_version": 3,
+  "public_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+  "final_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+  "base_path_ok": true,
+  "release_version": "0.0.3",
+  "checked_at": "2026-06-18T23:46:32.464048+08:00",
+  "browser": "Browserbase headless Chromium",
+  "pages": [
+    {
+      "ok": true,
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+      "title": "登录",
+      "screenshot": "login-0.0.3.png",
+      "notes": "居中卡片布局，表单完整，样式正常，HTTPS重定向透明"
+    },
+    {
+      "ok": true,
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/contracts",
+      "title": "合同管理",
+      "screenshot": "contract-list-0.0.3.png",
+      "notes": "导航栏四项完整(合同管理/用户管理/审计日志/模板管理)，搜索筛选正常"
+    },
+    {
+      "ok": true,
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/users",
+      "title": "用户管理",
+      "screenshot": "user-management-0.0.3.png",
+      "notes": "3用户(ID/用户名/邮箱/角色/状态/操作)列表完整"
+    },
+    {
+      "ok": true,
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/audit-logs",
+      "title": "审计日志",
+      "screenshot": "audit-log-0.0.3.png",
+      "notes": "筛选区4条件+6列表格齐全，分页正常"
+    },
+    {
+      "ok": true,
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/templates",
+      "title": "模板管理",
+      "screenshot": "template-management-0.0.3.png",
+      "notes": "v0.0.3新增，模板列表(名称/分类/创建者/时间/操作)显示正常"
+    },
+    {
+      "ok": true,
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/contracts/new",
+      "title": "新建合同",
+      "screenshot": "new-contract-template-0.0.3.png",
+      "notes": "「从模板创建」下拉框显示标准采购合同模板，表单所有字段完整"
+    }
+  ],
+  "workflow_checks": [
+    {
+      "ok": true,
+      "name": "login_admin",
+      "steps": [
+        "输入admin/admin123",
+        "点击登录"
+      ],
+      "result": "登录成功，显示管理员身份"
+    },
+    {
+      "ok": true,
+      "name": "navigate_all_sections",
+      "steps": [
+        "合同管理",
+        "用户管理",
+        "审计日志",
+        "模板管理",
+        "新建合同"
+      ],
+      "result": "全部5个页面正常加载无错误"
+    },
+    {
+      "ok": true,
+      "name": "template_feature",
+      "steps": [
+        "模板管理页显示列表",
+        "新建合同页从模板创建下拉"
+      ],
+      "result": "0.0.3模板功能完整"
+    }
+  ],
+  "failed_requests": [],
+  "http_errors": [],
+  "console_errors": [],
+  "screenshots": [
+    "evidence/verification/login-0.0.3.png",
+    "evidence/verification/contract-list-0.0.3.png",
+    "evidence/verification/user-management-0.0.3.png",
+    "evidence/verification/audit-log-0.0.3.png",
+    "evidence/verification/template-management-0.0.3.png",
+    "evidence/verification/new-contract-template-0.0.3.png"
+  ],
+  "visual_review": {
+    "verdict": "pass",
+    "issues": [],
+    "provider": "kimi-coding-cn",
+    "model": "kimi-k2.5",
+    "summary": "6个关键页面视觉审查全部pass：登录页居中卡片布局样式完整；合同管理页导航栏菜单齐全；用户管理页表格正确；审计日志页筛选和表格正常；模板管理页v0.0.3新增功能正确渲染；新建合同页从模板创建入口正常。无排版错乱、重叠或截断。"
+  },
+  "static_assets": [
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BmKznR58.js?v=0.0.3",
+      "http_status": 200,
+      "type": "script"
+    },
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BZr7LBEO.css?v=0.0.3",
+      "http_status": 200,
+      "type": "stylesheet"
+    }
+  ],
+  "stylesheets": [
+    {
+      "resolved_url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BZr7LBEO.css?v=0.0.3",
+      "http_status": 200,
+      "rel": "stylesheet"
+    }
+  ],
+  "asset_probes": [
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BmKznR58.js?v=0.0.3",
+      "http_status": 200
+    },
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BZr7LBEO.css?v=0.0.3",
+      "http_status": 200
+    }
+  ],
+  "document_response_headers": {
+    "cache-control": "no-cache",
+    "content-type": "text/html; charset=utf-8"
+  }
+}
