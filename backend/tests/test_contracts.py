@@ -231,3 +231,45 @@ def test_pagination(admin_token, client):
     )
     assert resp.status_code == 200
     assert len(resp.json()["items"]) <= 2
+
+
+def test_contract_audit_log_ip(admin_token, client):
+    """Contract CRUD should record ip_address in audit log."""
+    from app.models import AuditLog, Contract
+    from tests.conftest import TestSessionLocal
+
+    # Create contract
+    resp = client.post(
+        "/api/contracts",
+        json={"title": "Audit Contract", "contract_no": "AUDIT-C-001", "party_a": "A", "party_b": "B"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 201
+    cid = resp.json()["id"]
+
+    # Update contract
+    resp = client.put(
+        f"/api/contracts/{cid}",
+        json={"title": "Audit Contract Updated"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 200
+
+    # Status change (draft → active)
+    resp = client.patch(
+        f"/api/contracts/{cid}/status",
+        json={"status": "active"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 200
+
+    # Verify audit logs have ip_address
+    db = TestSessionLocal()
+    for action in ["contract.create", "contract.update", "contract.status_change"]:
+        log = db.query(AuditLog).filter(
+            AuditLog.action == action,
+            AuditLog.target_id == cid,
+        ).first()
+        assert log is not None, f"Expected audit log for {action}"
+        assert log.ip_address is not None, f"Expected ip_address for {action}"
+    db.close()

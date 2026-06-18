@@ -128,3 +128,45 @@ def test_user_get_me(client, admin_token):
     resp = client.get("/api/users/me", headers={"Authorization": f"Bearer {admin_token}"})
     assert resp.status_code == 200
     assert resp.json()["username"] == "admin"
+
+
+def test_user_audit_log_ip(client, admin_token):
+    """Create/edit/status_change user should record ip_address in audit log."""
+    from app.models import AuditLog
+    from tests.conftest import TestSessionLocal
+
+    # Create user
+    resp = client.post(
+        "/api/users",
+        json={"username": "audituser", "email": "auditusr@t.com", "password": "pass123", "role": "user"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 201
+    user_id = resp.json()["id"]
+
+    # Edit user
+    resp = client.put(
+        f"/api/users/{user_id}",
+        json={"email": "audituser2@t.com"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 200
+
+    # Toggle status
+    resp = client.patch(
+        f"/api/users/{user_id}/status",
+        json={"status": "disabled"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 200
+
+    # Verify audit logs have ip_address
+    db = TestSessionLocal()
+    for action in ["user.create", "user.update", "user.status_change"]:
+        log = db.query(AuditLog).filter(
+            AuditLog.action == action,
+            AuditLog.target_id == user_id,
+        ).first()
+        assert log is not None, f"Expected audit log for {action}"
+        assert log.ip_address is not None, f"Expected ip_address for {action}"
+    db.close()
