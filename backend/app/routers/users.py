@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.middleware.auth import get_current_user, require_admin
+from app.middleware.audit import AuditLogger
 from app.models import User
 from app.schemas.user import (
     UserCreate,
@@ -44,10 +45,11 @@ def create_user(
     body: UserCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
+    audit: AuditLogger = Depends(),
 ):
     """Create a new user. Admin only."""
     try:
-        return user_service.create_user(db, body, current_user.id)
+        return user_service.create_user(db, body, current_user.id, ip_address=audit.ip_address)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
@@ -71,10 +73,11 @@ def update_user(
     body: UserUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
+    audit: AuditLogger = Depends(),
 ):
     """Update user information. Admin only."""
     try:
-        return user_service.update_user(db, user_id, body, current_user.id)
+        return user_service.update_user(db, user_id, body, current_user.id, ip_address=audit.ip_address)
     except ValueError as e:
         if "不存在" in str(e):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -87,10 +90,11 @@ def toggle_user_status(
     body: UserStatusUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
+    audit: AuditLogger = Depends(),
 ):
     """Enable or disable a user. Admin only."""
     try:
-        return user_service.toggle_user_status(db, user_id, body.status, current_user.id)
+        return user_service.toggle_user_status(db, user_id, body.status, current_user.id, ip_address=audit.ip_address)
     except ValueError as e:
         if "不存在" in str(e):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
