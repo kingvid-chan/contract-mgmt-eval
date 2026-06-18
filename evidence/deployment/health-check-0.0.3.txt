@@ -1,0 +1,16 @@
+{"status":"ok","version":"0.0.3","timestamp":"2026-06-18T13:06:22.619004+00:00"}
+● codingagent-contract-mgmt-eval.service - CodingAgent - Contract Management Evaluation
+     Loaded: loaded (/etc/systemd/system/codingagent-contract-mgmt-eval.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-06-18 21:06:07 CST; 14s ago
+   Main PID: 841790 (python3)
+      Tasks: 7 (limit: 4124)
+     Memory: 61.2M (peak: 61.7M)
+        CPU: 998ms
+     CGroup: /system.slice/codingagent-contract-mgmt-eval.service
+             └─841790 /usr/bin/python3 -m uvicorn app.main:app --host 127.0.0.1 --port 19006
+
+Jun 18 21:06:07 iZwz9jat7ii9degq3lpjgtZ systemd[1]: codingagent-contract-mgmt-eval.service: Scheduled restart job, restart counter is at 1.
+Jun 18 21:06:07 iZwz9jat7ii9degq3lpjgtZ systemd[1]: Started codingagent-contract-mgmt-eval.service - CodingAgent - Contract Management Evaluation.
+Jun 18 21:06:08 iZwz9jat7ii9degq3lpjgtZ python3[841790]: INFO:     Started server process [841790]
+Jun 18 21:06:08 iZwz9jat7ii9degq3lpjgtZ python3[841790]: INFO:     Waiting for application startup.
+Jun 18 21:06:08 iZwz9jat7ii9degq3lpjgtZ python3[841790]: INFO:     Application startup complete.
