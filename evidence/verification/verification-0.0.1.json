@@ -1,0 +1,68 @@
+{
+  "iteration": "0.0.1",
+  "verifier": "hermes",
+  "timestamp": "2026-06-18T10:55:48.082090+00:00",
+  "verdict": "PASSED",
+  "backend_tests": {
+    "total": 49,
+    "passed": 49,
+    "failed": 0,
+    "evidence": "evidence/verification/pytest-0.0.1.txt"
+  },
+  "api_verification": {
+    "total_checks": 15,
+    "checks": {
+      "admin_login": "PASS",
+      "me": "PASS (admin role)",
+      "contracts_list": "PASS (4 contracts)",
+      "users_list": "PASS (3 users)",
+      "user_login": "PASS",
+      "register": "PASS",
+      "search": "PASS (4 results for '合同')",
+      "status_filter": "PASS (1 draft)",
+      "attachments": "PASS",
+      "password_reset": "PASS",
+      "health": "PASS",
+      "base_health": "PASS",
+      "user_isolation": "PASS (user sees 2, different from admin's 4)",
+      "user_permission_blocked": "PASS (normal user blocked from /api/users)",
+      "user_me": "PASS"
+    },
+    "all_pass": true
+  },
+  "frontend_build": {
+    "status": "PASS",
+    "output": "dist/index.html + assets/index-*.css + assets/index-*.js",
+    "size": "0.46 kB HTML, 6.72 kB CSS, 310 kB JS"
+  },
+  "frontend_pages_verified": [
+    "LoginPage.tsx",
+    "RegisterPage.tsx",
+    "PasswordResetPage.tsx",
+    "UserListPage.tsx",
+    "UserFormPage.tsx",
+    "ContractListPage.tsx",
+    "ContractDetailPage.tsx",
+    "ContractFormPage.tsx",
+    "NotFoundPage.tsx"
+  ],
+  "docs_verified": [
+    "docs/architecture.md",
+    "docs/runbook.md",
+    "docs/decisions/",
+    "docs/iterations/0.0.1.md"
+  ],
+  "requirement_coverage": {
+    "用户注册与登录": "PASS (14 tests + API verified)",
+    "用户管理(管理员)": "PASS (10 tests + API verified)",
+    "合同管理": "PASS (16 tests + API verified)",
+    "附件管理": "PASS (9 tests + API verified)",
+    "异常与边界": "PASS (permission isolation verified)",
+    "demo_accounts": "PASS (admin/admin123, user/user123 working)",
+    "tech_stack": "PASS (React 18+TS, FastAPI, SQLite, JWT)"
+  },
+  "known_issues": [
+    "password_reset endpoint returns error for non-existent email (expected 404)",
+    "SPA catch-all route covers all base-path paths; explicit healthz route added as fix"
+  ]
+}
