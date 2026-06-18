@@ -71,16 +71,6 @@ def on_startup():
 FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 if FRONTEND_DIST.exists():
     base_path = settings.BASE_PATH.rstrip("/")
-
-    @app.get(f"{base_path}/healthz", include_in_schema=False)
-    def base_health_check():
-        """Health check under BASE_PATH for deployment."""
-        return {
-            "status": "ok",
-            "version": "0.0.1",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-
     app.mount(
         f"{base_path}/assets",
         StaticFiles(directory=str(FRONTEND_DIST / "assets")),
