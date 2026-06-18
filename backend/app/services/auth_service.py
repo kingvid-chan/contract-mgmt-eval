@@ -10,7 +10,7 @@ from app.utils.security import hash_password, verify_password, create_access_tok
 from app.utils.audit import log_action
 
 
-def register(db: Session, data: RegisterRequest) -> User:
+def register(db: Session, data: RegisterRequest, ip_address: str | None = None) -> User:
     """Register a new user. Default role is 'user'."""
     # Check uniqueness
     if db.query(User).filter(User.username == data.username).first():
@@ -29,11 +29,11 @@ def register(db: Session, data: RegisterRequest) -> User:
     db.commit()
     db.refresh(user)
 
-    log_action(db, user.id, "user.register", "user", user.id)
+    log_action(db, user.id, "user.register", "user", user.id, ip_address=ip_address)
     return user
 
 
-def login(db: Session, username: str, password: str) -> dict:
+def login(db: Session, username: str, password: str, ip_address: str | None = None) -> dict:
     """Authenticate user and return JWT token.
 
     Raises ValueError if credentials are invalid or user is disabled.
@@ -49,7 +49,7 @@ def login(db: Session, username: str, password: str) -> dict:
         {"sub": str(user.id), "username": user.username, "role": user.role}
     )
 
-    log_action(db, user.id, "user.login", "user", user.id)
+    log_action(db, user.id, "user.login", "user", user.id, ip_address=ip_address)
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -63,7 +63,7 @@ def login(db: Session, username: str, password: str) -> dict:
     }
 
 
-def reset_password(db: Session, email: str) -> dict:
+def reset_password(db: Session, email: str, ip_address: str | None = None) -> dict:
     """Reset password for the given email.
 
     In this demo version, generates a new random password and returns it directly.
@@ -77,5 +77,5 @@ def reset_password(db: Session, email: str) -> dict:
     user.password_hash = hash_password(new_password)
     db.commit()
 
-    log_action(db, user.id, "user.password_reset", "user", user.id)
+    log_action(db, user.id, "user.password_reset", "user", user.id, ip_address=ip_address)
     return {"message": "密码已重置", "new_password": new_password}
