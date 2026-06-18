@@ -65,33 +65,3 @@ def on_startup():
     """Initialize database and ensure upload directory exists on startup."""
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     init_db()
-
-
-# Serve frontend static files (SPA)
-FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
-if FRONTEND_DIST.exists():
-    base_path = settings.BASE_PATH.rstrip("/")
-    app.mount(
-        f"{base_path}/assets",
-        StaticFiles(directory=str(FRONTEND_DIST / "assets")),
-        name="frontend_assets",
-    )
-
-    @app.get(f"{base_path}/{{path:path}}", include_in_schema=False)
-    @app.get(f"{base_path}", include_in_schema=False)
-    @app.get("/", include_in_schema=False)
-    async def serve_frontend(path: str = ""):
-        """Serve frontend index.html for all SPA routes under BASE_PATH."""
-        if not path or path == "index.html":
-            target = FRONTEND_DIST / "index.html"
-        else:
-            target = FRONTEND_DIST / path
-        if not target.exists() or not target.is_relative_to(FRONTEND_DIST):
-            target = FRONTEND_DIST / "index.html"
-        if not target.exists():
-            return Response(content="index.html not found", status_code=404)
-        return Response(
-            content=target.read_bytes(),
-            media_type="text/html",
-            headers={"Cache-Control": "no-cache"},
-        )
