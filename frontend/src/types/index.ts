@@ -96,6 +96,33 @@ export interface AuditLogListResponse {
   items: AuditLog[];
 }
 
+export interface ContractTemplate {
+  id: number;
+  name: string;
+  category: string;
+  party_a_default: string | null;
+  party_b_default: string | null;
+  content: string | null;
+  amount_min: number | null;
+  amount_max: number | null;
+  is_deleted: boolean;
+  created_by: number;
+  creator_username: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateListResponse {
+  total: number;
+  items: ContractTemplate[];
+}
+
+export interface TemplateDropdownItem {
+  id: number;
+  name: string;
+  category: string;
+}
+
 export interface ApiError {
   detail: string;
 }

@@ -19,6 +19,7 @@ export default function Navbar() {
         <Link to="/contracts">合同管理</Link>
         {isAdmin && <Link to="/users">用户管理</Link>}
         {isAdmin && <Link to="/audit-logs">审计日志</Link>}
+        {isAdmin && <Link to="/templates">模板管理</Link>}
       </div>
       <div className="navbar-user">
         <span className="navbar-username">

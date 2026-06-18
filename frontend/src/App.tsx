@@ -15,6 +15,8 @@ import ContractListPage from './pages/ContractListPage';
 import ContractDetailPage from './pages/ContractDetailPage';
 import ContractFormPage from './pages/ContractFormPage';
 import AuditLogPage from './pages/AuditLogPage';
+import TemplateListPage from './pages/TemplateListPage';
+import TemplateFormPage from './pages/TemplateFormPage';
 
 function App() {
   return (
@@ -37,6 +39,9 @@ function App() {
                 <Route path="/users/new" element={<UserFormPage />} />
                 <Route path="/users/:id/edit" element={<UserFormPage />} />
                 <Route path="/audit-logs" element={<AuditLogPage />} />
+                <Route path="/templates" element={<TemplateListPage />} />
+                <Route path="/templates/new" element={<TemplateFormPage />} />
+                <Route path="/templates/:id/edit" element={<TemplateFormPage />} />
               </Route>
 
               {/* Contract routes */}
