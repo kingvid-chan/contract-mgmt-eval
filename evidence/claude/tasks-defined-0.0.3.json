@@ -1,0 +1,90 @@
+{
+  "iteration": "0.0.3",
+  "feature": "合同模板功能",
+  "tasks": [
+    {
+      "id": "T1",
+      "name": "后端 — ContractTemplate 数据模型",
+      "files": ["backend/app/models/template.py", "backend/app/models/__init__.py"],
+      "status": "pending",
+      "description": "新建 ContractTemplate ORM 模型，包含 name/category/party_a_default/party_b_default/content/amount_min/amount_max/is_deleted/created_by/created_at/updated_at"
+    },
+    {
+      "id": "T2",
+      "name": "后端 — Pydantic Schema",
+      "files": ["backend/app/schemas/template.py"],
+      "status": "pending",
+      "description": "TemplateCreate, TemplateUpdate, TemplateResponse, TemplateDropdownItem, TemplateListResponse"
+    },
+    {
+      "id": "T3",
+      "name": "后端 — Template Service 业务逻辑",
+      "files": ["backend/app/services/template_service.py"],
+      "status": "pending",
+      "description": "CRUD + 软删除 + 搜索分页 + 占位符替换 + 审计日志"
+    },
+    {
+      "id": "T4",
+      "name": "后端 — Template API 路由",
+      "files": ["backend/app/routers/templates.py"],
+      "status": "pending",
+      "description": "GET/POST/PUT/DELETE /api/templates + GET /api/templates/dropdown"
+    },
+    {
+      "id": "T5",
+      "name": "后端 — 注册路由 & 版本升级",
+      "files": ["backend/app/main.py"],
+      "status": "pending",
+      "description": "注册 templates router, bump version to 0.0.3"
+    },
+    {
+      "id": "T6",
+      "name": "前端 — TypeScript 类型 & API 层",
+      "files": ["frontend/src/types/index.ts", "frontend/src/api/templates.ts"],
+      "status": "pending",
+      "description": "ContractTemplate 接口 + API 调用函数"
+    },
+    {
+      "id": "T7",
+      "name": "前端 — 模板管理列表页",
+      "files": ["frontend/src/pages/TemplateListPage.tsx"],
+      "status": "pending",
+      "description": "表格 + 搜索 + 分页 + 增删改操作"
+    },
+    {
+      "id": "T8",
+      "name": "前端 — 模板创建/编辑表单页",
+      "files": ["frontend/src/pages/TemplateFormPage.tsx"],
+      "status": "pending",
+      "description": "表单 + 占位符帮助 + 创建/编辑双模式"
+    },
+    {
+      "id": "T9",
+      "name": "前端 — 路由和导航注册",
+      "files": ["frontend/src/App.tsx", "frontend/src/components/Navbar.tsx"],
+      "status": "pending",
+      "description": "AdminRoute 下添加模板路由，导航栏添加入口"
+    },
+    {
+      "id": "T10",
+      "name": "前端 — ContractFormPage 集成模板选择",
+      "files": ["frontend/src/pages/ContractFormPage.tsx"],
+      "status": "pending",
+      "description": "新建合同模式下顶部增加模板下拉选择，自动填充字段"
+    },
+    {
+      "id": "T11",
+      "name": "后端测试",
+      "files": ["backend/tests/test_templates.py"],
+      "status": "pending",
+      "description": "pytest: 模板 CRUD + 权限 + 软删除 + 下拉 + 占位符替换"
+    },
+    {
+      "id": "T12",
+      "name": "自测 & 文档同步",
+      "files": ["evidence/claude/self-test-0.0.3.txt", "evidence/claude/handoff-0.0.3.json", "docs/iterations/0.0.3.md", "docs/architecture.md"],
+      "status": "pending",
+      "description": "运行测试、保存自测输出、生成 handoff、更新架构文档"
+    }
+  ]
+}

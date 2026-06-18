@@ -1,0 +1,62 @@
+{
+  "iteration": "0.0.3",
+  "feature": "合同模板功能",
+  "source_event": "e000031",
+  "created_at": "2026-06-18T12:30:00Z",
+  "data_model": {
+    "new_table": "contract_templates",
+    "columns": {
+      "id": "INTEGER PK AUTOINCREMENT",
+      "name": "VARCHAR(200) NOT NULL",
+      "category": "VARCHAR(100) NOT NULL DEFAULT ''",
+      "party_a_default": "VARCHAR(200) NULL",
+      "party_b_default": "VARCHAR(200) NULL",
+      "content": "TEXT NOT NULL DEFAULT ''",
+      "amount_min": "FLOAT NULL",
+      "amount_max": "FLOAT NULL",
+      "is_deleted": "BOOLEAN NOT NULL DEFAULT FALSE",
+      "created_by": "INTEGER FK users.id NOT NULL",
+      "created_at": "DATETIME NOT NULL",
+      "updated_at": "DATETIME NOT NULL"
+    }
+  },
+  "api_routes": [
+    {"method": "GET", "path": "/api/templates", "auth": "admin", "description": "模板列表（搜索/分页，过滤已删除）"},
+    {"method": "POST", "path": "/api/templates", "auth": "admin", "description": "创建模板"},
+    {"method": "GET", "path": "/api/templates/dropdown", "auth": "all", "description": "可用模板下拉（所有用户）"},
+    {"method": "GET", "path": "/api/templates/{id}", "auth": "admin", "description": "模板详情"},
+    {"method": "PUT", "path": "/api/templates/{id}", "auth": "admin", "description": "更新模板"},
+    {"method": "DELETE", "path": "/api/templates/{id}", "auth": "admin", "description": "软删除模板"}
+  ],
+  "frontend_routes": [
+    {"path": "/templates", "component": "TemplateListPage", "auth": "AdminRoute", "description": "模板管理列表"},
+    {"path": "/templates/new", "component": "TemplateFormPage", "auth": "AdminRoute", "description": "创建模板"},
+    {"path": "/templates/:id/edit", "component": "TemplateFormPage", "auth": "AdminRoute", "description": "编辑模板"}
+  ],
+  "placeholder_format": "{{variable_name}}",
+  "soft_delete": "is_deleted BOOLEAN flag",
+  "migration_strategy": "create_all (new table, no ALTER TABLE needed)",
+  "backend_files": [
+    "backend/app/models/template.py (new)",
+    "backend/app/models/__init__.py (modify)",
+    "backend/app/schemas/template.py (new)",
+    "backend/app/services/template_service.py (new)",
+    "backend/app/routers/templates.py (new)",
+    "backend/app/main.py (modify: register router, bump version)"
+  ],
+  "frontend_files": [
+    "frontend/src/types/index.ts (modify: add Template types)",
+    "frontend/src/api/templates.ts (new)",
+    "frontend/src/pages/TemplateListPage.tsx (new)",
+    "frontend/src/pages/TemplateFormPage.tsx (new)",
+    "frontend/src/pages/ContractFormPage.tsx (modify: add template selector)",
+    "frontend/src/components/Navbar.tsx (modify: add nav link)",
+    "frontend/src/App.tsx (modify: add routes)"
+  ],
+  "audit_actions": ["template.create", "template.update", "template.delete"],
+  "risks": [
+    "软删除一致性：所有查询需过滤 is_deleted=False",
+    "占位符转义：模板中 {{ }} 字面量需正确处理",
+    "模板删除不影响已有合同"
+  ]
+}
