@@ -1,0 +1,63 @@
+{
+  "session_id": "910673d9",
+  "iteration": "0.0.1",
+  "project": "contract-mgmt-eval",
+  "created": "2026-06-18T10:45:00+00:00",
+
+  "technical_plan": {
+    "file": "evidence/claude/technical-plan-0.0.1.json",
+    "summary": "React 18 + TypeScript SPA 前端，Python FastAPI REST API 后端，SQLite 数据库，JWT HS256 认证。前端 Vite 5 + React Router v6 + AuthContext 状态管理。后端分层架构 (router → service → models)，passlib bcrypt 密码哈希。合同状态流转 draft→active→terminated/expired。部署至 /projects/contract-mgmt-eval/ base path，Cache-Control: no-cache HTML 响应头。"
+  },
+
+  "tasks": {
+    "total": 13,
+    "completed": 13,
+    "status": {
+      "T1": "completed — 项目脚手架 (FastAPI + Vite + React 18 + TypeScript)",
+      "T2": "completed — 数据库四表模型 (User/Contract/Attachment/AuditLog) + 种子数据",
+      "T3": "completed — 认证 API (register/login/logout/me/password-reset) + JWT + bcrypt",
+      "T4": "completed — 用户管理 API (admin CRUD + 权限守卫)",
+      "T5": "completed — 合同管理 API (CRUD + 搜索/筛选/分页 + 状态流转 + 权限隔离)",
+      "T6": "completed — 附件管理 API (上传/下载/预览/删除 + 格式校验 + 大小限制)",
+      "T7": "completed — 前端框架 (React Router + AuthContext + Axios client + 全局组件)",
+      "T8": "completed — 登录/注册/密码重置页面",
+      "T9": "completed — 用户管理页面 (admin, 表格/搜索/分页/启用禁用)",
+      "T10": "completed — 合同管理页面 (列表/详情/表单 + 状态流转操作)",
+      "T11": "completed — 附件管理 UI (上传/列表/下载/预览/删除)",
+      "T12": "completed — 前后端联调 (错误处理完善 + Cache-Control 中间件)",
+      "T13": "completed — 自测脚本 (49 pytest tests, all passed)"
+    }
+  },
+
+  "implementation_commits": [
+    "11fc0ea feat(T1): scaffold project structure with FastAPI and React 18 + TypeScript",
+    "79fdc5e feat(T2): add SQLAlchemy models and seed data script",
+    "254825a feat(T3): implement auth endpoints (register/login/logout/me/password-reset) with JWT",
+    "0fcf2ee feat(T4): implement user management CRUD with admin role guard",
+    "5052a5b feat(T5): implement contract CRUD with search, pagination, and status flow",
+    "e0b53ec feat(T6): implement attachment upload/download/delete with format validation",
+    "351c157 feat(T7): build frontend framework with routing, auth context, and API client",
+    "e1bb158 feat(T8): implement login, register, and password reset pages",
+    "abff9ad feat(T9): implement user management pages (admin only)",
+    "68636f6 feat(T10): implement contract list, detail, and form pages with status flow",
+    "584024a feat(T11): add attachment upload/download/preview/delete in frontend UI",
+    "457457a feat(T12): integration polish — error cleanup, Cache-Control header"
+  ],
+
+  "self_test_command": "cd backend && python -m pytest tests/ -v",
+  "self_test_result": {
+    "total": 49,
+    "passed": 49,
+    "failed": 0,
+    "errors": 0,
+    "modules": {
+      "test_auth.py": "14 tests — register, login, me, logout, password-reset, disabled user",
+      "test_users.py": "10 tests — CRUD, permissions, search, status toggle",
+      "test_contracts.py": "16 tests — CRUD, search/filter/pagination, status flow, isolation",
+      "test_attachments.py": "9 tests — upload, download, preview, delete, validation, permissions"
+    }
+  },
+  "self_test_output": "evidence/claude/self-test-0.0.1.txt",
+
+  "ready_for_verification": true
+}
