@@ -32,6 +32,18 @@
 - **IP 获取**: 兼容链 X-Real-IP → X-Forwarded-For (首个非内网) → request.client.host。
 - **数据库**: AuditLog 表新增 `ip_address` VARCHAR(45) 字段，通过幂等迁移函数自动添加。
 
+### 合同模板 (v0.0.3 新增)
+
+- **后端**: `models/template.py` — ContractTemplate ORM 模型，包含 name/category/content/party_a_default/party_b_default/amount_min/amount_max/is_deleted 字段，通过 `is_deleted` 布尔字段实现软删除。
+- **后端**: `services/template_service.py` — 模板 CRUD 业务逻辑，包含搜索/分页查询、模板下拉列表（仅返回未删除模板）、占位符 `{{变量}}` 替换渲染。
+- **后端**: `routers/templates.py` — 模板管理 API（admin only: CRUD）和模板下拉 API（所有认证用户: `GET /api/templates/dropdown`）。
+- **前端**: `pages/TemplateListPage.tsx` — 模板管理列表页（表格 + 搜索 + 分页 + 软删除确认），仅 admin 可见。
+- **前端**: `pages/TemplateFormPage.tsx` — 模板创建/编辑表单页，提供占位符帮助提示。
+- **前端**: `pages/ContractFormPage.tsx` — 创建合同时新增「从模板创建」下拉选择器，选择模板后自动填充表单字段。
+- **数据库**: 新增 `contract_templates` 表，通过 `Base.metadata.create_all()` 自动创建。
+- **占位符**: 格式 `{{变量名}}`，常用变量: `{{甲方}}`, `{{乙方}}`, `{{金额}}`, `{{日期}}`, `{{合同编号}}`。
+- **ADR**: ADR-005 合同模板设计方案 — 软删除 + `{{变量}}` 占位符。
+
 ### 前端模块
 
 ```
@@ -147,6 +159,12 @@ Browser                    FastAPI                    Database
 | GET | /api/attachments/{id}/download | ✓ | - | 下载附件 |
 | DELETE | /api/attachments/{id} | ✓ | - | 删除附件 |
 | GET | /api/audit-logs | ✓ | admin | 审计日志列表 (筛选+分页) |
+| GET | /api/templates | ✓ | admin | 模板列表 (搜索/分页) |
+| POST | /api/templates | ✓ | admin | 创建模板 |
+| GET | /api/templates/dropdown | ✓ | - | 可用模板下拉列表 |
+| GET | /api/templates/{id} | ✓ | admin | 模板详情 |
+| PUT | /api/templates/{id} | ✓ | admin | 更新模板 |
+| DELETE | /api/templates/{id} | ✓ | admin | 软删除模板 |
 | GET | /healthz | ✗ | - | 健康检查 |
 
 ## 测试策略
@@ -212,7 +230,9 @@ Browser                    FastAPI                    Database
 ## 关联 ADR 与最近变更
 
 - 2026-06-18: iteration/0.0.1 启动，初版架构确立
+- 2026-06-18: iteration/0.0.3 — 合同模板功能，新增模板 CRUD API、模板下拉 API、前端模板管理页面、创建合同时模板选择
 - 2026-06-18: iteration/0.0.2 — 操作审计日志模块，新增 `GET /api/audit-logs` API、`AuditLogger` 依赖注入、前端审计日志页面
+- ADR-005: 合同模板设计方案 — 软删除 + `{{变量}}` 占位符 (`docs/decisions/ADR-005-合同模板设计方案.md`)
 - ADR-002: 审计日志记录方式 — FastAPI 依赖注入 (`docs/decisions/ADR-002-审计日志记录方式.md`)
 - ADR-003: 客户端 IP 获取策略 — 三层兼容链 (`docs/decisions/ADR-003-客户端IP获取策略.md`)
 - ADR-004: 数据库迁移策略 — 手动幂等 ALTER TABLE (`docs/decisions/ADR-004-数据库迁移策略.md`)

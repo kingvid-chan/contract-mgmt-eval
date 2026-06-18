@@ -1,6 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createContract, getContract, updateContract } from '../api/contracts';
+import { listTemplatesDropdown, getTemplate } from '../api/templates';
+import type { TemplateDropdownItem } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const EMPTY_FORM = { title: '', contract_no: '', party_a: '', party_b: '', amount: '', sign_date: '', expiry_date: '', content: '' };
@@ -14,6 +16,45 @@ export default function ContractFormPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEdit);
+  const [templates, setTemplates] = useState<TemplateDropdownItem[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [templateLoading, setTemplateLoading] = useState(false);
+
+  // Fetch template dropdown in create mode
+  useEffect(() => {
+    if (isEdit) return;
+    (async () => {
+      try {
+        const tpls = await listTemplatesDropdown();
+        setTemplates(tpls);
+      } catch {
+        // Silently fail — template selector is optional
+      }
+    })();
+  }, [isEdit]);
+
+  // Handle template selection
+  const handleTemplateSelect = async (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (!templateId) return;
+
+    setTemplateLoading(true);
+    try {
+      const tpl = await getTemplate(Number(templateId));
+      setForm((f) => ({
+        ...f,
+        title: tpl.name || f.title,
+        party_a: tpl.party_a_default || f.party_a,
+        party_b: tpl.party_b_default || f.party_b,
+        content: tpl.content || f.content,
+        amount: tpl.amount_min?.toString() || f.amount,
+      }));
+    } catch {
+      // Silently fail
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isEdit) return;
@@ -92,6 +133,28 @@ export default function ContractFormPage() {
 
       <div className="card" style={{ maxWidth: 720 }}>
         {error && <div className="alert alert-error">{error}</div>}
+
+        {/* Template selector — only in create mode */}
+        {!isEdit && templates.length > 0 && (
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <label>从模板创建（可选）</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <select
+                value={selectedTemplateId}
+                onChange={(e) => handleTemplateSelect(e.target.value)}
+                style={{ flex: 1 }}
+              >
+                <option value="">-- 不选择模板 --</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}{t.category ? ` (${t.category})` : ''}
+                  </option>
+                ))}
+              </select>
+              {templateLoading && <LoadingSpinner />}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">

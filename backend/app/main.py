@@ -15,7 +15,7 @@ import app.models  # noqa: F401 — register models with Base.metadata
 
 app = FastAPI(
     title="合同管理系统-评测",
-    version="0.0.2",
+    version="0.0.3",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
 )
@@ -26,11 +26,13 @@ from app.routers import users as users_router  # noqa: E402
 from app.routers import contracts as contracts_router  # noqa: E402
 from app.routers import attachments as attachments_router  # noqa: E402
 from app.routers import audit_logs as audit_logs_router  # noqa: E402
+from app.routers import templates as templates_router  # noqa: E402
 app.include_router(auth_router.router)
 app.include_router(users_router.router)
 app.include_router(contracts_router.router)
 app.include_router(attachments_router.router)
 app.include_router(audit_logs_router.router)
+app.include_router(templates_router.router)
 
 # CORS
 app.add_middleware(
@@ -57,7 +59,7 @@ def health_check():
     """Health check endpoint."""
     return {
         "status": "ok",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

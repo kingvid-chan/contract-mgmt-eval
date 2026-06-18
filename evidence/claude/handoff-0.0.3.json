@@ -1,0 +1,67 @@
+{
+  "session_id": "claude-0.0.3-contract-template",
+  "iteration": "0.0.3",
+  "feature": "合同模板功能",
+  "created_at": "2026-06-18T14:00:00Z",
+  "branch": "feat/0.0.3-contract-template",
+  "technical_plan": "evidence/technical-plan-0.0.3.md",
+  "technical_plan_json": "evidence/claude/technical-plan-0.0.3.json",
+  "tasks": "evidence/iteration-0.0.3.md",
+  "tasks_json": "evidence/claude/tasks-defined-0.0.3.json",
+  "implementation_commits": [
+    "77f0d7b fix: adjust unauthorized test expectations to match FastAPI HTTPBearer behavior (403 not 401)",
+    "d562339 test: add contract template API tests",
+    "a8d67ab feat: frontend contract template management pages and integration",
+    "8142352 feat: backend contract template model, service, and API routes",
+    "6c68dde docs: technical plan and task breakdown for 0.0.3 contract template feature"
+  ],
+  "backend_files": {
+    "new": [
+      "backend/app/models/template.py",
+      "backend/app/schemas/template.py",
+      "backend/app/services/template_service.py",
+      "backend/app/routers/templates.py",
+      "backend/tests/test_templates.py"
+    ],
+    "modified": [
+      "backend/app/models/__init__.py",
+      "backend/app/main.py"
+    ]
+  },
+  "frontend_files": {
+    "new": [
+      "frontend/src/api/templates.ts",
+      "frontend/src/pages/TemplateListPage.tsx",
+      "frontend/src/pages/TemplateFormPage.tsx"
+    ],
+    "modified": [
+      "frontend/src/types/index.ts",
+      "frontend/src/App.tsx",
+      "frontend/src/components/Navbar.tsx",
+      "frontend/src/pages/ContractFormPage.tsx"
+    ]
+  },
+  "docs_files": {
+    "new": [
+      "docs/iterations/0.0.3.md",
+      "docs/decisions/ADR-005-合同模板设计方案.md"
+    ],
+    "modified": [
+      "docs/architecture.md"
+    ]
+  },
+  "api_endpoints": [
+    {"method": "GET", "path": "/api/templates", "auth": "admin", "description": "模板列表（搜索/分页）"},
+    {"method": "POST", "path": "/api/templates", "auth": "admin", "description": "创建模板"},
+    {"method": "GET", "path": "/api/templates/dropdown", "auth": "all", "description": "可用模板下拉列表"},
+    {"method": "GET", "path": "/api/templates/{id}", "auth": "admin", "description": "模板详情"},
+    {"method": "PUT", "path": "/api/templates/{id}", "auth": "admin", "description": "更新模板"},
+    {"method": "DELETE", "path": "/api/templates/{id}", "auth": "admin", "description": "软删除模板"}
+  ],
+  "self_test_command": "cd backend && python -m pytest tests/ -v",
+  "self_test_result": "111 passed, 0 failed",
+  "self_test_output": "evidence/claude/self-test-0.0.3.txt",
+  "frontend_lint_command": "cd frontend && npx tsc --noEmit",
+  "frontend_lint_result": "pass (no errors)",
+  "ready_for_verification": true
+}
