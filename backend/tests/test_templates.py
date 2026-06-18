@@ -39,7 +39,7 @@ def test_create_template_non_admin_forbidden(user_token, client):
 
 def test_create_template_unauthorized(client):
     resp = client.post("/api/templates", json={"name": "未登录模板"})
-    assert resp.status_code == 401
+    assert resp.status_code == 403
 
 
 def test_create_template_minimal_fields(admin_token, client):
@@ -249,7 +249,7 @@ def test_dropdown_authenticated(admin_token, user_token, client):
 
 def test_dropdown_unauthorized(client):
     resp = client.get("/api/templates/dropdown")
-    assert resp.status_code == 401
+    assert resp.status_code == 403
 
 
 def test_dropdown_excludes_deleted(admin_token, user_token, client):
