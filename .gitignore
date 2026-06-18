@@ -9,3 +9,7 @@ node_modules/
 dist/
 process-log/
 .paused
+*.db
+backend/data/
+backend/uploads/
+frontend/dist/
