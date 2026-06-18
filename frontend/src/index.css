@@ -552,6 +552,169 @@ tr:hover td {
   margin-top: 4px;
 }
 
+/* ===== Audit Log Page ===== */
+.audit-filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+}
+
+.filter-group input[type="date"],
+.filter-group input[type="text"],
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  min-width: 140px;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.filter-actions {
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.reset-btn {
+  margin-left: 0;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.audit-table th,
+.audit-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.audit-table th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.audit-table tr:hover td {
+  background: #fafafa;
+}
+
+.cell-time {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #555;
+}
+
+.cell-ip {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 13px;
+  color: #888;
+}
+
+.cell-detail {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ===== Action Badges ===== */
+.action-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Login/Logout — green tones */
+.action-user-login,
+.action-user-logout {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+/* User management — blue tones */
+.action-user-create,
+.action-user-update,
+.action-user-register {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+/* Status changes — orange tones */
+.action-user-status-change,
+.action-contract-status-change {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+/* Contract CRUD — blue/purple tones */
+.action-contract-create,
+.action-contract-update {
+  background: #f0f5ff;
+  color: #2f54eb;
+  border: 1px solid #adc6ff;
+}
+
+/* Contract delete — red tones */
+.action-contract-delete {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffa39e;
+}
+
+/* Attachment — cyan tones */
+.action-attachment-upload,
+.action-attachment-delete {
+  background: #e6fffb;
+  color: #13c2c2;
+  border: 1px solid #87e8de;
+}
+
+/* Password reset — gray */
+.action-user-password-reset {
+  background: #f5f5f5;
+  color: #8c8c8c;
+  border: 1px solid #d9d9d9;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .main-content {
