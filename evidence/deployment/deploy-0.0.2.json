@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "server": "aliyun-cowork",
+  "service_name": "codingagent-contract-mgmt-eval",
+  "port": 19006,
+  "deploy_root": "/srv/codingagent/contract-mgmt-eval",
+  "release_version": "0.0.2",
+  "release_commit": "744af999b0718a3a3bf665d1941b1d96dfab8004",
+  "deploy_method": "tarball from git archive 0.0.2 tag",
+  "status": "active"
+}

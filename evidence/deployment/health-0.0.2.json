@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "public_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+  "health_url": "http://120.24.117.67/projects/contract-mgmt-eval/healthz",
+  "health_response": {
+    "status": "ok",
+    "version": "0.0.2"
+  },
+  "public_status": 200,
+  "health_status": 200,
+  "status": "healthy"
+}

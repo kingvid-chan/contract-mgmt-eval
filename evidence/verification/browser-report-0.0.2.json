@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "public_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+  "final_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+  "base_path_ok": true,
+  "release_version": "0.0.2",
+  "document_response_headers": {
+    "server": "nginx/1.24.0 (Ubuntu)",
+    "content_type": "text/html",
+    "etag": "\"6a33ddd7-1ce\"",
+    "cache-control": "no-cache"
+  },
+  "pages": [
+    {
+      "name": "登录页",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+      "ok": true
+    },
+    {
+      "name": "合同管理",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+      "ok": true
+    },
+    {
+      "name": "审计日志",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+      "ok": true
+    },
+    {
+      "name": "用户管理",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+      "ok": true
+    }
+  ],
+  "workflow_checks": [
+    {
+      "name": "登录流程",
+      "ok": true,
+      "detail": "admin/admin123 登录成功，导航栏显示管理功能"
+    },
+    {
+      "name": "合同列表浏览",
+      "ok": true,
+      "detail": "3条合同数据正常渲染，状态标签正确"
+    },
+    {
+      "name": "审计日志访问",
+      "ok": true,
+      "detail": "4条审计记录，筛选器完整，IP地址正常显示"
+    },
+    {
+      "name": "用户管理访问",
+      "ok": true,
+      "detail": "2个用户正常显示，编辑和禁用按钮可用"
+    }
+  ],
+  "failed_requests": [],
+  "http_errors": [],
+  "console_errors": [],
+  "screenshots": [
+    "evidence/verification/contract-list-0.0.2.png",
+    "evidence/verification/audit-log-0.0.2.png",
+    "evidence/verification/user-management-0.0.2.png"
+  ],
+  "visual_review": {
+    "provider": "kimi",
+    "model": "moonshot-v1-vision",
+    "verdict": "pass",
+    "issues": [],
+    "summary": "Kimi视觉审查通过：合同列表、审计日志、用户管理三个核心页面布局完整，导航栏功能齐全，数据渲染正常，无乱码或样式崩坏。审计日志新增功能（操作类型筛选、IP地址记录、分页表格）均正常工作。"
+  },
+  "static_assets": [
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BZr7LBEO.css?v=0.0.2",
+      "type": "stylesheet",
+      "http_status": 200,
+      "transfer_size": 0
+    },
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-B_00UtN2.js?v=0.0.2",
+      "type": "script",
+      "http_status": 200,
+      "transfer_size": 0
+    }
+  ],
+  "stylesheets": [
+    {
+      "resolved_url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BZr7LBEO.css",
+      "http_status": 200,
+      "type": "link"
+    }
+  ],
+  "asset_probes": [
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-BZr7LBEO.css",
+      "http_status": 200,
+      "type": "stylesheet"
+    },
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-B_00UtN2.js",
+      "http_status": 200,
+      "type": "script"
+    }
+  ]
+}

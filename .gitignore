@@ -13,3 +13,4 @@ process-log/
 backend/data/
 backend/uploads/
 frontend/dist/
+.venv/
