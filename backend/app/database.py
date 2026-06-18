@@ -34,6 +34,32 @@ def get_db():
         db.close()
 
 
+def _run_migrations():
+    """Run idempotent schema migrations for SQLite.
+
+    Checks for missing columns and adds them safely.
+    Extend this function for future schema changes.
+    """
+    import sqlalchemy
+
+    with engine.connect() as conn:
+        # Migration 0.0.2: add ip_address column to audit_logs
+        result = conn.execute(
+            sqlalchemy.text(
+                "SELECT COUNT(*) FROM pragma_table_info('audit_logs') WHERE name='ip_address'"
+            )
+        )
+        row = result.fetchone()
+        if row and row[0] == 0:
+            conn.execute(
+                sqlalchemy.text(
+                    "ALTER TABLE audit_logs ADD COLUMN ip_address VARCHAR(45)"
+                )
+            )
+            conn.commit()
+
+
 def init_db():
-    """Create all tables. Called on application startup."""
+    """Create all tables and run migrations. Called on application startup."""
+    _run_migrations()
     Base.metadata.create_all(bind=engine)
