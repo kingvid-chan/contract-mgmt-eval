@@ -2,17 +2,49 @@
 
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status, Header
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, security_scheme
 from app.models import User
 from app.schemas.attachment import AttachmentResponse, AttachmentListResponse
 from app.services import attachment_service
+from app.utils.security import decode_access_token
 
 router = APIRouter(tags=["attachments"])
+
+
+def get_current_user_optional(
+    token: str | None = Query(None),
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db),
+) -> User:
+    """Auth via Bearer header or ?token= query param (for <a> downloads)."""
+    resolved = token
+    if not resolved and authorization and authorization.startswith("Bearer "):
+        resolved = authorization.removeprefix("Bearer ")
+
+    if not resolved:
+        raise HTTPException(status_code=401, detail="未认证")
+
+    payload = decode_access_token(resolved)
+    if not payload:
+        raise HTTPException(status_code=401, detail="无效的认证凭据")
+
+    user_id_str = payload.get("sub")
+    try:
+        user_id = int(user_id_str)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=401, detail="无效的认证凭据")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="用户不存在")
+    if user.status == "disabled":
+        raise HTTPException(status_code=403, detail="账户已被禁用")
+    return user
 
 
 @router.post(
@@ -50,7 +82,7 @@ def download_attachment(
     attachment_id: int,
     preview: bool = Query(False),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
 ):
     """Download or preview an attachment file."""
     from app.services.attachment_service import _check_attachment_ownership

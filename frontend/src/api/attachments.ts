@@ -16,12 +16,10 @@ export async function uploadAttachment(contractId: number, file: File): Promise<
 }
 
 export function getDownloadUrl(attachmentId: number, preview = false): string {
-  const base = `/api/attachments/${attachmentId}/download`;
-  const token = localStorage.getItem('access_token');
-  const url = preview ? `${base}?preview=true` : base;
-  // For file downloads, we can't set Authorization header via <a> tag.
-  // The API also supports query param token.
-  return `${url}?token=${token}${preview ? '&preview=true' : ''}`;
+  const token = localStorage.getItem('access_token') || '';
+  let url = `/api/attachments/${attachmentId}/download?token=${encodeURIComponent(token)}`;
+  if (preview) url += '&preview=true';
+  return url;
 }
 
 export async function deleteAttachment(id: number): Promise<void> {
