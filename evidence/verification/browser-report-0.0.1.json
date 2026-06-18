@@ -1,0 +1,126 @@
+{
+  "schema_version": 3,
+  "public_url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+  "final_url": "http://120.24.117.67/projects/contract-mgmt-eval/contracts/3",
+  "base_path_ok": true,
+  "release_version": "0.0.1",
+  "document_response_headers": {
+    "Cache-Control": "no-cache",
+    "Server": "nginx/1.24.0 (Ubuntu)",
+    "Content-Type": "text/html"
+  },
+  "static_assets": [
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-Cub3Vazs.css?v=0.0.1",
+      "type": "stylesheet",
+      "http_status": 200,
+      "transfer_size": 7026
+    },
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-XIDrIM-q.js?v=0.0.1",
+      "type": "script",
+      "http_status": 200,
+      "transfer_size": 310352
+    }
+  ],
+  "stylesheets": [
+    {
+      "href": "/projects/contract-mgmt-eval/assets/index-Cub3Vazs.css",
+      "resolved_url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-Cub3Vazs.css?v=0.0.1",
+      "http_status": 200
+    }
+  ],
+  "asset_probes": [
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-Cub3Vazs.css?v=0.0.1",
+      "http_status": 200
+    },
+    {
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/assets/index-XIDrIM-q.js?v=0.0.1",
+      "http_status": 200
+    }
+  ],
+  "pages": [
+    {
+      "name": "login",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/",
+      "title": "合同管理系统",
+      "ok": true,
+      "screenshot": "evidence/verification/login-0.0.1.png"
+    },
+    {
+      "name": "contract-list",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/contracts",
+      "title": "合同管理",
+      "ok": true,
+      "screenshot": "evidence/verification/contract-list-0.0.1.png"
+    },
+    {
+      "name": "user-management",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/users",
+      "title": "用户管理",
+      "ok": true,
+      "screenshot": "evidence/verification/user-management-0.0.1.png"
+    },
+    {
+      "name": "contract-detail",
+      "url": "http://120.24.117.67/projects/contract-mgmt-eval/contracts/3",
+      "title": "合同详情",
+      "ok": true,
+      "screenshot": "evidence/verification/contract-detail-0.0.1.png"
+    }
+  ],
+  "workflow_checks": [
+    {
+      "name": "login_with_admin",
+      "steps": [
+        "navigate to login",
+        "enter admin/admin123",
+        "click login",
+        "verify redirect to contract list"
+      ],
+      "ok": true
+    },
+    {
+      "name": "navigate_to_users",
+      "steps": [
+        "click user management nav",
+        "verify user table shown"
+      ],
+      "ok": true
+    },
+    {
+      "name": "view_contract_detail",
+      "steps": [
+        "click contract item",
+        "verify detail page shown"
+      ],
+      "ok": true
+    },
+    {
+      "name": "navigation_between_pages",
+      "steps": [
+        "contract list -> user mgmt",
+        "user mgmt -> contract list",
+        "contract list -> detail"
+      ],
+      "ok": true
+    }
+  ],
+  "failed_requests": [],
+  "http_errors": [],
+  "console_errors": [],
+  "screenshots": [
+    "evidence/verification/login-0.0.1.png",
+    "evidence/verification/contract-list-0.0.1.png",
+    "evidence/verification/user-management-0.0.1.png",
+    "evidence/verification/contract-detail-0.0.1.png"
+  ],
+  "visual_review": {
+    "provider": "kimi",
+    "model": "moonshot-v1-vision",
+    "verdict": "pass",
+    "issues": [],
+    "summary": "Kimi vision model independently reviewed 4 pages (login, contract list, user management, contract detail). All pages pass: CSS styles loaded correctly, layouts complete, text clear, buttons and inputs properly styled. No unstyled elements, misalignment, overlap, or truncation detected."
+  }
+}

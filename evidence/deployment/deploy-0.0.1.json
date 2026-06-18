@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "server": "aliyun-cowork",
+  "service_name": "codingagent-contract-mgmt-eval",
+  "port": 19006,
+  "deploy_root": "/srv/codingagent/contract-mgmt-eval",
+  "release_version": "0.0.1",
+  "checkout_commit": "5a0a104c17d2887a84ee80a55149e5961254a2e9",
+  "started_at": "2026-06-18T19:15:10+08:00",
+  "health_endpoint": "/healthz",
+  "status": "active"
+}
