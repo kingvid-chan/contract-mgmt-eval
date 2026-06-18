@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.middleware.auth import get_current_user
+from app.middleware.audit import AuditLogger
 from app.models import User
 from app.schemas.contract import (
     ContractCreate,
@@ -40,10 +41,11 @@ def create_contract(
     body: ContractCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    audit: AuditLogger = Depends(),
 ):
     """Create a new contract (default status: draft)."""
     try:
-        contract = contract_service.create_contract(db, body, current_user)
+        contract = contract_service.create_contract(db, body, current_user, ip_address=audit.ip_address)
         return contract_service._to_response(contract)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
@@ -70,10 +72,11 @@ def update_contract(
     body: ContractUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    audit: AuditLogger = Depends(),
 ):
     """Update contract information."""
     try:
-        return contract_service.update_contract(db, contract_id, body, current_user)
+        return contract_service.update_contract(db, contract_id, body, current_user, ip_address=audit.ip_address)
     except ValueError as e:
         if "不存在" in str(e):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -87,10 +90,11 @@ def delete_contract(
     contract_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    audit: AuditLogger = Depends(),
 ):
     """Delete a contract (draft only)."""
     try:
-        contract_service.delete_contract(db, contract_id, current_user)
+        contract_service.delete_contract(db, contract_id, current_user, ip_address=audit.ip_address)
         return {"message": "合同已删除"}
     except ValueError as e:
         if "不存在" in str(e):
@@ -106,11 +110,12 @@ def update_contract_status(
     body: ContractStatusUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    audit: AuditLogger = Depends(),
 ):
     """Transition contract status (draft→active→terminated/expired)."""
     try:
         return contract_service.update_contract_status(
-            db, contract_id, body.status, current_user
+            db, contract_id, body.status, current_user, ip_address=audit.ip_address
         )
     except ValueError as e:
         if "不存在" in str(e):
