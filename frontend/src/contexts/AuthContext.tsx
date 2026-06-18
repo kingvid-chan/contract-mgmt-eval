@@ -50,12 +50,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loginAction = useCallback(async (username: string, password: string) => {
-    const res = await authApi.login({ username, password });
-    setToken(res.access_token);
-    localStorage.setItem('access_token', res.access_token);
-    const me = await authApi.getMe();
-    setUser(me);
-    localStorage.setItem('user', JSON.stringify(me));
+    try {
+      const res = await authApi.login({ username, password });
+      setToken(res.access_token);
+      localStorage.setItem('access_token', res.access_token);
+      const me = await authApi.getMe();
+      setUser(me);
+      localStorage.setItem('user', JSON.stringify(me));
+    } catch (err) {
+      // Clean up partial state on failure
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      throw err;
+    }
   }, []);
 
   const registerAction = useCallback(async (username: string, email: string, password: string) => {
