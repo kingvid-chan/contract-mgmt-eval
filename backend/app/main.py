@@ -20,6 +20,10 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+# Register routers
+from app.routers import auth as auth_router  # noqa: E402
+app.include_router(auth_router.router)
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
