@@ -11,6 +11,7 @@ from starlette.responses import Response
 
 from app.config import settings
 from app.database import init_db
+import app.models  # noqa: F401 — register models with Base.metadata
 
 app = FastAPI(
     title="合同管理系统-评测",
